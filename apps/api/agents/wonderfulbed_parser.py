@@ -12,7 +12,6 @@ import json
 
 try:
     import httpx
-    from langchain_openai import ChatOpenAI
     from langchain.prompts import PromptTemplate
 except ImportError:
     pass
@@ -27,18 +26,40 @@ class WonderfulbedParserAgent:
         self,
         ctradei_login: str,
         ctradei_password: str,
+        ctradei_client_id: str,
+        ctradei_client_secret: str,
         insales_api_url: str,
         insales_api_key: str,
-        openai_api_key: str,
+        use_gigachat: bool = True,
     ):
         self.ctradei_login = ctradei_login
         self.ctradei_password = ctradei_password
+        self.ctradei_client_id = ctradei_client_id
+        self.ctradei_client_secret = ctradei_client_secret
         self.insales_api_url = insales_api_url
         self.insales_api_key = insales_api_key
+        self.use_gigachat = use_gigachat
 
-        self.llm = ChatOpenAI(api_key=openai_api_key, model="gpt-4-turbo-preview")
+        # Initialize LLM
+        self.llm = self._init_llm()
         self.session: Optional[httpx.AsyncClient] = None
         self.ctradei_token: Optional[str] = None
+
+    def _init_llm(self):
+        """Initialize LLM (GigaChat or OpenAI)."""
+        if self.use_gigachat:
+            try:
+                from gigachat import GigaChat
+                return GigaChat(
+                    credentials=f"{self.ctradei_client_id}:{self.ctradei_client_secret}",
+                    model="GigaChat",
+                    temperature=0.7,
+                    top_p=0.1,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to init GigaChat: {e}, falling back to OpenAI")
+                return None
+        return None
 
     async def __aenter__(self):
         self.session = httpx.AsyncClient()
@@ -104,48 +125,59 @@ class WonderfulbedParserAgent:
             return []
 
     async def enrich_product_data(self, product: Dict[str, Any]) -> Dict[str, Any]:
-        """Использует LLM для обогащения данных товара."""
-        prompt = PromptTemplate(
-            input_variables=["product_name", "description", "price"],
-            template="""
-Analyze this product for wonderfulbed.ru store:
-Product: {product_name}
-Description: {description}
-Price: {price}
+        """Использует GigaChat/LLM для обогащения данных товара."""
+        prompt_text = f"""
+Проанализируй товар для магазина wonderfulbed.ru:
+Товар: {product.get("name", "")}
+Описание: {product.get("description", "")}
+Цена: {product.get("price", 0)}
 
-Provide:
-1. SEO-optimized title (max 60 chars)
-2. SEO-optimized description (max 160 chars)
-3. Key features (3-5 items)
-4. Target audience
-5. Suggested tags
+Предоставь ответ в формате JSON:
+{{
+  "title": "SEO-оптимизированное название (макс 60 символов)",
+  "description": "SEO-оптимизированное описание (макс 160 символов)",
+  "features": ["особенность 1", "особенность 2", "особенность 3"],
+  "target_audience": "целевая аудитория",
+  "tags": ["тег1", "тег2", "тег3"]
+}}
 
-Return as JSON.
-            """,
-        )
+Ответ только JSON без дополнительного текста.
+        """
 
         try:
-            chain = prompt | self.llm
-            result = await asyncio.to_thread(
-                chain.invoke,
-                {
-                    "product_name": product.get("name", ""),
+            if self.llm and self.use_gigachat:
+                # Use GigaChat for Russian text
+                response = await asyncio.to_thread(
+                    self.llm,
+                    prompt_text,
+                )
+
+                response_text = str(response)
+                logger.info(f"GigaChat response: {response_text[:100]}...")
+
+                # Extract JSON from response
+                if "{" in response_text:
+                    json_str = response_text[response_text.find("{"):response_text.rfind("}")+1]
+                    enriched = json.loads(json_str)
+                    return enriched
+            else:
+                # Fallback: return minimal enrichment
+                logger.warning("LLM not available, returning basic enrichment")
+                return {
+                    "title": product.get("name", ""),
                     "description": product.get("description", ""),
-                    "price": product.get("price", 0),
-                },
-            )
+                    "features": ["Товар из ctradei"],
+                    "target_audience": "Широкая аудитория",
+                    "tags": ["постельное белье", "ctradei"],
+                }
 
-            # Parse response
-            response_text = result.content
-            if "```json" in response_text:
-                json_str = response_text.split("```json")[1].split("```")[0]
-                enriched = json.loads(json_str)
-                return enriched
-
-            return result
-        except Exception as e:
-            logger.error(f"Error enriching product: {e}")
             return {}
+        except Exception as e:
+            logger.error(f"Error enriching product: {e}", exc_info=True)
+            return {
+                "title": product.get("name", ""),
+                "description": product.get("description", ""),
+            }
 
     async def sync_to_insales(self, products: List[Dict[str, Any]]) -> bool:
         """Синхронизирует товары с insales API."""
@@ -281,14 +313,16 @@ Return as JSON.
 
 
 async def run_parser():
-    """Главная функция запуска парсера."""
+    """Главная функция запуска парсера с поддержкой GigaChat."""
     import os
 
     async with WonderfulbedParserAgent(
         ctradei_login=os.getenv("CTRADEI_LOGIN", "bgrachik@yandex.ru"),
         ctradei_password=os.getenv("CTRADEI_PASSWORD", ""),
+        ctradei_client_id=os.getenv("GIGACHAT_CLIENT_ID", ""),
+        ctradei_client_secret=os.getenv("GIGACHAT_CLIENT_SECRET", ""),
         insales_api_url=os.getenv("INSALES_API_URL", "https://api.insales.ru/v1"),
         insales_api_key=os.getenv("INSALES_API_KEY", ""),
-        openai_api_key=os.getenv("OPENAI_API_KEY", ""),
+        use_gigachat=os.getenv("USE_GIGACHAT", "true").lower() == "true",
     ) as agent:
         return await agent.run_sync()
