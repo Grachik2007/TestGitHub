@@ -1,33 +1,20 @@
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-COPY package*.json ./
-RUN npm ci
-
-COPY . .
-
-# Create .env.local for build
-RUN echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
-
-RUN npm run build
-
 FROM node:20-alpine
 
 WORKDIR /app
 
+# Install dependencies
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm install --legacy-peer-deps
 
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
-COPY --from=builder /app/node_modules/.next/static ./node_modules/.next/static
+# Copy application
+COPY . .
 
-# Create runtime .env.local
+# Create .env.local
 RUN echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
 
-EXPOSE 3000
+# Build
+RUN npm run build
 
-USER node
+EXPOSE 3000
 
 CMD ["npm", "start"]
