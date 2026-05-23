@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from api.v1.endpoints import auth, health, agents, tasks, analytics, billing, parser
+from api.v1.endpoints import auth, health, agents, tasks, analytics, billing, parser, pricing
 
 api_router = APIRouter()
 
@@ -24,3 +24,6 @@ api_router.include_router(billing.router, prefix="/billing", tags=["Billing"])
 
 # Parser (Wonderfulbed sync)
 api_router.include_router(parser.router, prefix="/parser", tags=["Parser"])
+
+# Pricing (Smart Pricing Engine)
+api_router.include_router(pricing.router)
