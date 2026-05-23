@@ -51,18 +51,11 @@ jobs:
         run: |
           python infrastructure/scripts/generate_dashboard.py
 
-      - name: Sync products to insales
+      - name: Generate insales import files
         if: success()
-        env:
-          INSALES_SHOP_ID: ${{ secrets.INSALES_SHOP_ID }}
-          INSALES_API_KEY: ${{ secrets.INSALES_API_KEY }}
-          INSALES_API_PASSWORD: ${{ secrets.INSALES_API_PASSWORD }}
         run: |
-          if [ -z "$INSALES_SHOP_ID" ]; then
-            echo "⏭️  Синхронизация insales отключена (учетные данные не установлены)"
-          else
-            echo "🔄 Синхронизирую товары в insales..."
-            python infrastructure/scripts/sync_insales.py
+          echo "📥 Генерирую файлы для импорта в insales..."
+          python infrastructure/scripts/generate_insales_files.py
           fi
 
       - name: Deploy to GitHub Pages
