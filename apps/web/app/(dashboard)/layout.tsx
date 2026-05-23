@@ -12,6 +12,7 @@ export default function DashboardLayout({
             { href: "/dashboard", label: "Dashboard", icon: "📊" },
             { href: "/dashboard/agents", label: "AI Agents", icon: "🤖" },
             { href: "/dashboard/parser", label: "Wonderfulbed Parser", icon: "🛒" },
+            { href: "/dashboard/pricing", label: "Smart Pricing", icon: "💰" },
             { href: "/dashboard/analytics", label: "Analytics", icon: "📈" },
             { href: "/dashboard/billing", label: "Billing", icon: "💳" },
             { href: "/dashboard/settings", label: "Settings", icon: "⚙️" },
