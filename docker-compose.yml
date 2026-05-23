@@ -1,0 +1,180 @@
+version: '3.9'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:16-alpine
+    container_name: ai_agents_db
+    environment:
+      POSTGRES_USER: ai_user
+      POSTGRES_PASSWORD: ai_password_dev
+      POSTGRES_DB: ai_agents
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ai_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai_network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: ai_agents_redis
+    command: redis-server --requirepass redis_password_dev
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ai_network
+
+  # FastAPI Backend
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: ai_agents_api
+    environment:
+      ENVIRONMENT: development
+      DEBUG: "true"
+      DATABASE_URL: postgresql://ai_user:ai_password_dev@db:5432/ai_agents
+      REDIS_URL: redis://:redis_password_dev@redis:6379/0
+      CELERY_BROKER_URL: redis://:redis_password_dev@redis:6379/1
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-test-key}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-key-change-in-prod}
+      API_HOST: 0.0.0.0
+      API_PORT: 8000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./apps/api:/app
+    ports:
+      - "8000:8000"
+    networks:
+      - ai_network
+    command: python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # Celery Worker
+  celery_worker:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: ai_agents_celery_worker
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql://ai_user:ai_password_dev@db:5432/ai_agents
+      REDIS_URL: redis://:redis_password_dev@redis:6379/0
+      CELERY_BROKER_URL: redis://:redis_password_dev@redis:6379/1
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-sk-test-key}
+    depends_on:
+      - db
+      - redis
+      - api
+    volumes:
+      - ./apps/api:/app
+    networks:
+      - ai_network
+    command: celery -A tasks worker --loglevel=info
+
+  # Celery Beat Scheduler
+  celery_beat:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: ai_agents_celery_beat
+    environment:
+      ENVIRONMENT: development
+      DATABASE_URL: postgresql://ai_user:ai_password_dev@db:5432/ai_agents
+      REDIS_URL: redis://:redis_password_dev@redis:6379/0
+      CELERY_BROKER_URL: redis://:redis_password_dev@redis:6379/1
+    depends_on:
+      - db
+      - redis
+      - api
+    volumes:
+      - ./apps/api:/app
+    networks:
+      - ai_network
+    command: celery -A tasks beat --loglevel=info
+
+  # Next.js Frontend
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: ai_agents_web
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+      API_URL: http://api:8000
+    depends_on:
+      - api
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    ports:
+      - "3000:3000"
+    networks:
+      - ai_network
+
+  # Telegram Bot Service
+  telegram:
+    build:
+      context: ./apps/telegram
+      dockerfile: Dockerfile
+    container_name: ai_agents_telegram
+    environment:
+      ENVIRONMENT: development
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-your-token-here}
+      API_URL: http://api:8000
+      DATABASE_URL: postgresql://ai_user:ai_password_dev@db:5432/ai_agents
+      REDIS_URL: redis://:redis_password_dev@redis:6379/0
+    depends_on:
+      - db
+      - redis
+      - api
+    volumes:
+      - ./apps/telegram:/app
+    networks:
+      - ai_network
+    command: python -m telegram_bot
+
+  # Nginx Reverse Proxy (Optional)
+  nginx:
+    image: nginx:alpine
+    container_name: ai_agents_nginx
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./infrastructure/nginx/ssl:/etc/nginx/ssl:ro
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - api
+      - web
+    networks:
+      - ai_network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  ai_network:
+    driver: bridge
