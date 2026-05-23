@@ -1,0 +1,66 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wonderfulbed Product Feeds</title>
+    <style>
+        body { font-family: sans-serif; background: #f5f5f5; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        h1 { color: #333; }
+        .feed-list { list-style: none; padding: 0; }
+        .feed-list li { margin: 15px 0; }
+        .feed-link { display: block; padding: 15px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; }
+        .feed-link:hover { background: #0056b3; }
+        .feed-info { color: #666; font-size: 12px; margin-top: 5px; }
+        .timestamp { color: #999; font-size: 12px; margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛒 Wonderfulbed Product Feeds</h1>
+        <p>Товарные фиды для синхронизации товаров с маркетплейсами</p>
+
+        <h2>📋 Доступные фиды:</h2>
+        <ul class="feed-list">
+            <li>
+                <a href="feeds/yandex-market.xml" class="feed-link">
+                    🔗 Yandex Market Feed (XML)
+                </a>
+                <div class="feed-info">
+                    Для Яндекс.Маркета и других маркетплейсов<br>
+                    Обновляется автоматически в 00:30 MSK
+                </div>
+            </li>
+            <li>
+                <a href="feeds/google-merchant.xml" class="feed-link">
+                    🔗 Google Merchant Center Feed (XML)
+                </a>
+                <div class="feed-info">
+                    Для Google Shopping<br>
+                    Обновляется автоматически в 00:30 MSK
+                </div>
+            </li>
+            <li>
+                <a href="feeds/products.json" class="feed-link">
+                    🔗 Products JSON Feed
+                </a>
+                <div class="feed-info">
+                    Для API и пользовательских интеграций<br>
+                    Обновляется автоматически в 00:30 MSK
+                </div>
+            </li>
+        </ul>
+
+        <h2>🤖 Онлайн-интерфейс агентов:</h2>
+        <a href="agents.html" class="feed-link" style="display: inline-block; margin-top: 10px;">
+            🎯 Перейти в интерфейс управления агентами
+        </a>
+
+        <div class="timestamp">
+            Последнее обновление: 2026-05-23 21:20:27 MSK
+        </div>
+    </div>
+</body>
+</html>

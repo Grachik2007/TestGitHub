@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<yml_catalog date="2026-05-23T21:20:27.269437">
+<shop>
+<name>Wonderfulbed</name>
+<company>Wonderfulbed.ru</company>
+<url>https://wonderfulbed.ru</url>
+<currencies>
+<currency id="RUR" rate="1"/>
+</currencies>
+<categories>
+<category id="1">Постельное белье</category>
+<category id="2">Товары для дома</category>
+</categories>
+<offers>
+  <offer id="WB-00001" available="true">
+    <url>https://wonderfulbed.ru/products/komplekt-belogo-khlop-1-5</url>
+    <price>2999</price>
+    <currencyId>RUR</currencyId>
+    <categoryId>1</categoryId>
+    <picture>https://via.placeholder.com/400x400?text=Комплект постельного белья хлопок 1,5-спального размера</picture>
+    <name>Комплект белья хлопок 1,5-спального размера</name>
+    <description>Мягкий натуральный хлопковый комплект для комфортного сна. Легко стирается, долговечен.</description>
+    <param name="Особенность">Натуральный хлопок</param>
+    <param name="Особенность">Яркие цвета</param>
+    <param name="Особенность">Легко стирается</param>
+  </offer>
+  <offer id="WB-00002" available="true">
+    <url>https://wonderfulbed.ru/products/evro-komplekt-satin-premium</url>
+    <price>5999</price>
+    <currencyId>RUR</currencyId>
+    <categoryId>1</categoryId>
+    <picture>https://via.placeholder.com/400x400?text=Евро комплект постельного белья сатин</picture>
+    <name>Евро комплект белья сатин премиум качество</name>
+    <description>Премиум сатиновое постельное белье. Гладкое, блестящее, максимально комфортное.</description>
+    <param name="Особенность">Премиум сатин</param>
+    <param name="Особенность">Блестящее</param>
+    <param name="Особенность">Комфортное</param>
+  </offer>
+  <offer id="WB-00003" available="true">
+    <url>https://wonderfulbed.ru/products/detskoe-belie-s-risunkami</url>
+    <price>1999</price>
+    <currencyId>RUR</currencyId>
+    <categoryId>1</categoryId>
+    <picture>https://via.placeholder.com/400x400?text=Детское постельное белье с рисунками</picture>
+    <name>Детский комплект белья с любимыми персонажами</name>
+    <description>Яркое детское постельное белье с рисунками. Безопасное для детской кожи.</description>
+    <param name="Особенность">Детское</param>
+    <param name="Особенность">Яркое</param>
+    <param name="Особенность">Безопасное</param>
+  </offer>
+</offers>
+</shop>
+</yml_catalog>

@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 AI Agents Management</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .agents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .agent-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+
+        .agent-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 48px rgba(0,0,0,0.3);
+        }
+
+        .agent-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+        }
+
+        .agent-icon {
+            font-size: 2em;
+        }
+
+        .agent-name {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .agent-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-idle {
+            background: #e2e3e5;
+            color: #383d41;
+        }
+
+        .agent-description {
+            color: #666;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .agent-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #eee;
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 0.85em;
+            color: #999;
+            margin-top: 4px;
+        }
+
+        .agent-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.9em;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .parser-section {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sync-status {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .sync-time {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .sync-info {
+            font-size: 0.95em;
+            opacity: 0.9;
+        }
+
+        .feed-list {
+            list-style: none;
+        }
+
+        .feed-item {
+            padding: 12px;
+            background: #f9f9f9;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #667eea;
+        }
+
+        .feed-url {
+            color: #667eea;
+            font-family: monospace;
+            word-break: break-all;
+            font-size: 0.9em;
+        }
+
+        .feed-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            opacity: 0.8;
+        }
+
+        .live-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #10b981;
+            color: white;
+            border-radius: 20px;
+            font-size: 0.8em;
+            margin-left: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .agents-grid { grid-template-columns: 1fr; }
+            .agent-stats { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 AI Agents Management</h1>
+            <p class="subtitle">Управление мультиагентной системой обогащения товаров</p>
+        </header>
+
+        <!-- Agents Grid -->
+        <div class="agents-grid">
+            <!-- SEO Agent -->
+            <div class="agent-card">
+                <div class="agent-header">
+                    <span class="agent-icon">🔍</span>
+                    <span class="agent-name">SEO Agent</span>
+                </div>
+                <p class="agent-description">Анализ ключевых слов и оптимизация контента</p>
+                <span class="agent-status status-active">🟢 Active</span>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <div class="stat-value">1,234</div>
+                        <div class="stat-label">Задач</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">98.5%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                <div class="agent-actions">
+                    <button class="btn btn-primary">💬 Chat</button>
+                    <button class="btn btn-secondary">⚙️ Settings</button>
+                </div>
+            </div>
+
+            <!-- Supplier Agent -->
+            <div class="agent-card">
+                <div class="agent-header">
+                    <span class="agent-icon">🏭</span>
+                    <span class="agent-name">Supplier Agent</span>
+                </div>
+                <p class="agent-description">Поиск и анализ поставщиков</p>
+                <span class="agent-status status-active">🟢 Active</span>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <div class="stat-value">567</div>
+                        <div class="stat-label">Задач</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">95.2%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                <div class="agent-actions">
+                    <button class="btn btn-primary">💬 Chat</button>
+                    <button class="btn btn-secondary">⚙️ Settings</button>
+                </div>
+            </div>
+
+            <!-- Product Agent -->
+            <div class="agent-card">
+                <div class="agent-header">
+                    <span class="agent-icon">📦</span>
+                    <span class="agent-name">Product Agent</span>
+                </div>
+                <p class="agent-description">Исследование трендов и товаров</p>
+                <span class="agent-status status-active">🟢 Active</span>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <div class="stat-value">892</div>
+                        <div class="stat-label">Задач</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">96.8%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                <div class="agent-actions">
+                    <button class="btn btn-primary">💬 Chat</button>
+                    <button class="btn btn-secondary">⚙️ Settings</button>
+                </div>
+            </div>
+
+            <!-- Wonderfulbed Parser -->
+            <div class="agent-card" style="border-left-color: #f59e0b;">
+                <div class="agent-header">
+                    <span class="agent-icon">🛒</span>
+                    <span class="agent-name">Wonderfulbed Parser</span>
+                </div>
+                <p class="agent-description">Парсинг товаров с ctradei для wonderfulbed.ru</p>
+                <span class="agent-status status-active">🟢 Active</span>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <div class="stat-value">1,247</div>
+                        <div class="stat-label">Товаров</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">99.1%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                <div class="agent-actions">
+                    <button class="btn btn-primary">🚀 Sync Now</button>
+                    <button class="btn btn-secondary">📋 Logs</button>
+                </div>
+            </div>
+
+            <!-- Pricing Agent -->
+            <div class="agent-card">
+                <div class="agent-header">
+                    <span class="agent-icon">💰</span>
+                    <span class="agent-name">Pricing Agent</span>
+                </div>
+                <p class="agent-description">Оптимизация цен и анализ конкурентов</p>
+                <span class="agent-status status-idle">⚫ Idle</span>
+                <div class="agent-stats">
+                    <div class="stat">
+                        <div class="stat-value">234</div>
+                        <div class="stat-label">Задач</div>
+                    </div>
+                    <div class="stat">
+                        <div class="stat-value">94.7%</div>
+                        <div class="stat-label">Успешность</div>
+                    </div>
+                </div>
+                <div class="agent-actions">
+                    <button class="btn btn-primary">💬 Chat</button>
+                    <button class="btn btn-secondary">⚙️ Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Parser Section -->
+        <div class="parser-section">
+            <h2 class="section-title">
+                <span>🛒</span>
+                Wonderfulbed Parser
+                <span class="live-badge">LIVE</span>
+            </h2>
+
+            <div class="sync-status">
+                <div class="sync-time">00:30 MSK</div>
+                <div class="sync-info">⏰ Следующее автоматическое обновление товарного фида</div>
+            </div>
+
+            <h3 style="color: #333; margin-bottom: 15px;">📋 Товарные фиды:</h3>
+            <ul class="feed-list">
+                <li class="feed-item">
+                    <div class="feed-label">🔗 Yandex Market Feed</div>
+                    <div class="feed-url">
+                        <a href="feeds/yandex-market.xml" target="_blank">
+                            /feeds/yandex-market.xml
+                        </a>
+                    </div>
+                </li>
+                <li class="feed-item">
+                    <div class="feed-label">🔗 Google Merchant Center Feed</div>
+                    <div class="feed-url">
+                        <a href="feeds/google-merchant.xml" target="_blank">
+                            /feeds/google-merchant.xml
+                        </a>
+                    </div>
+                </li>
+                <li class="feed-item">
+                    <div class="feed-label">🔗 JSON Feed (API)</div>
+                    <div class="feed-url">
+                        <a href="feeds/products.json" target="_blank">
+                            /feeds/products.json
+                        </a>
+                    </div>
+                </li>
+            </ul>
+
+            <div style="margin-top: 20px; padding: 15px; background: #f0f7ff; border-radius: 6px; border-left: 3px solid #667eea;">
+                <p style="color: #333; font-size: 0.95em;">
+                    <strong>📊 Статистика:</strong><br>
+                    ✅ Товаров синхронизировано: 1,247<br>
+                    ✅ Успешных синхронизаций: 99.1%<br>
+                    ✅ Последнее обновление: 2024-01-24 00:30 MSK<br>
+                    ✅ Следующее обновление: 2024-01-25 00:30 MSK
+                </p>
+            </div>
+        </div>
+
+        <footer>
+            <p>🚀 AI Business SaaS Agents Platform | Powered by GigaChat & LangChain</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">
+                <a href="/" style="color: white; text-decoration: none;">← Вернуться на главную</a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Simple demo interactivity
+        document.querySelectorAll('.btn-primary').forEach(btn => {
+            btn.addEventListener('click', function() {
+                alert('🤖 Agent interaction coming soon!');
+            });
+        });
+
+        document.querySelectorAll('a[target="_blank"]').forEach(link => {
+            link.style.color = '#667eea';
+            link.style.textDecoration = 'none';
+        });
+    </script>
+</body>
+</html>

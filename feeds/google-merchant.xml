@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">
+<channel>
+<title>Wonderfulbed.ru Products</title>
+<link>https://wonderfulbed.ru</link>
+<description>Постельное белье и товары для дома</description>
+  <item>
+    <g:id>WB-00001</g:id>
+    <title>Комплект белья хлопок 1,5-спального размера</title>
+    <description>Мягкий натуральный хлопковый комплект для комфортного сна. Легко стирается, долговечен.</description>
+    <g:price>2999 RUB</g:price>
+    <g:availability>in stock</g:availability>
+    <link>https://wonderfulbed.ru/products/komplekt-belogo-khlop-1-5</link>
+<g:image_link>https://via.placeholder.com/400x400</g:image_link>
+<g:product_category>Постельное белье</g:product_category>
+    <g:target_demographic>Семьи с детьми</g:target_demographic>
+  </item>
+  <item>
+    <g:id>WB-00002</g:id>
+    <title>Евро комплект белья сатин премиум качество</title>
+    <description>Премиум сатиновое постельное белье. Гладкое, блестящее, максимально комфортное.</description>
+    <g:price>5999 RUB</g:price>
+    <g:availability>in stock</g:availability>
+    <link>https://wonderfulbed.ru/products/evro-komplekt-satin-premium</link>
+<g:image_link>https://via.placeholder.com/400x400</g:image_link>
+<g:product_category>Постельное белье</g:product_category>
+    <g:target_demographic>Люди, ценящие качество</g:target_demographic>
+  </item>
+  <item>
+    <g:id>WB-00003</g:id>
+    <title>Детский комплект белья с любимыми персонажами</title>
+    <description>Яркое детское постельное белье с рисунками. Безопасное для детской кожи.</description>
+    <g:price>1999 RUB</g:price>
+    <g:availability>in stock</g:availability>
+    <link>https://wonderfulbed.ru/products/detskoe-belie-s-risunkami</link>
+<g:image_link>https://via.placeholder.com/400x400</g:image_link>
+<g:product_category>Постельное белье</g:product_category>
+    <g:target_demographic>Дети</g:target_demographic>
+  </item>
+</channel>
+</rss>
