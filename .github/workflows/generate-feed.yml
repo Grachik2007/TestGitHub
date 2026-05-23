@@ -26,16 +26,26 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install httpx requests
+          pip install httpx requests pydantic
 
-      - name: Generate product feed
+      - name: Generate product feed with Smart Pricing
         env:
+          # Pricing configuration (Smart Pricing Engine)
+          PRICING_MARGIN: '35.0'           # Базовая маржа (%)
+          PRICING_LOGISTICS: '8.0'         # Логистика (%)
+          PRICING_COMMISSION: '5.0'        # Комиссия маркетплейса (%)
+          PRICING_FIXED: '15.0'            # Фиксированные расходы (₽)
+          PRICING_MIN_MARKUP: '15.0'       # Минимальная маржа (%)
+
+          # ctradei credentials (когда будут готовы)
           CTRADEI_LOGIN: ${{ secrets.CTRADEI_LOGIN }}
           CTRADEI_PASSWORD: ${{ secrets.CTRADEI_PASSWORD }}
+
+          # GigaChat credentials (для обогащения описаний)
           GIGACHAT_CLIENT_ID: ${{ secrets.GIGACHAT_CLIENT_ID }}
           GIGACHAT_CLIENT_SECRET: ${{ secrets.GIGACHAT_CLIENT_SECRET }}
         run: |
-          python infrastructure/scripts/generate_feed.py
+          python infrastructure/scripts/generate_feed_with_pricing.py
 
       - name: Generate agent dashboard
         run: |
