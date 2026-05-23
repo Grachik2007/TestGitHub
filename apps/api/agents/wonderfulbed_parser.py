@@ -10,9 +10,12 @@ from typing import Optional, Dict, List, Any
 import hashlib
 import json
 
-import httpx
-from langchain_openai import ChatOpenAI
-from langchain.prompts import PromptTemplate
+try:
+    import httpx
+    from langchain_openai import ChatOpenAI
+    from langchain.prompts import PromptTemplate
+except ImportError:
+    pass
 
 logger = logging.getLogger(__name__)
 
