@@ -28,7 +28,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install httpx requests pydantic
 
-      - name: Generate product feed with Smart Pricing
+      - name: Integrate ctradei (YML + CSV + Pricing)
         env:
           # Pricing configuration (Smart Pricing Engine)
           PRICING_MARGIN: '35.0'           # Базовая маржа (%)
@@ -37,15 +37,15 @@ jobs:
           PRICING_FIXED: '15.0'            # Фиксированные расходы (₽)
           PRICING_MIN_MARKUP: '15.0'       # Минимальная маржа (%)
 
-          # ctradei credentials (когда будут готовы)
-          CTRADEI_LOGIN: ${{ secrets.CTRADEI_LOGIN }}
-          CTRADEI_PASSWORD: ${{ secrets.CTRADEI_PASSWORD }}
+          # ctradei sources (permanent links)
+          CTRADEI_YML_URL: 'https://ctradei.com/x/shop2_1410641-yml.xml'
+          CTRADEI_CSV_URL: 'https://ctradei.com/f/ostatki_2020.csv'
 
           # GigaChat credentials (для обогащения описаний)
           GIGACHAT_CLIENT_ID: ${{ secrets.GIGACHAT_CLIENT_ID }}
           GIGACHAT_CLIENT_SECRET: ${{ secrets.GIGACHAT_CLIENT_SECRET }}
         run: |
-          python infrastructure/scripts/generate_feed_with_pricing.py
+          python infrastructure/scripts/ctradei_integrator.py
 
       - name: Generate agent dashboard
         run: |
