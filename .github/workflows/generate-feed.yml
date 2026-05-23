@@ -35,15 +35,14 @@ jobs:
           GIGACHAT_CLIENT_ID: ${{ secrets.GIGACHAT_CLIENT_ID }}
           GIGACHAT_CLIENT_SECRET: ${{ secrets.GIGACHAT_CLIENT_SECRET }}
         run: |
-          python scripts/generate_feed.py
+          python infrastructure/scripts/generate_feed.py
 
       - name: Generate agent dashboard
         run: |
-          python scripts/generate_dashboard.py
+          python infrastructure/scripts/generate_dashboard.py
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./public
-          cname: wonderfulbed-agents.github.io
