@@ -1,4 +1,4 @@
-name: Generate Product Feed
+name: Daily Sync - ctradei → Smart Pricing → insales → GitHub Pages
 
 on:
   schedule:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:  # Можно запустить вручную
 
 jobs:
-  generate-feed:
+  generate-feed-and-sync:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -50,6 +50,20 @@ jobs:
       - name: Generate agent dashboard
         run: |
           python infrastructure/scripts/generate_dashboard.py
+
+      - name: Sync products to insales
+        if: success()
+        env:
+          INSALES_SHOP_ID: ${{ secrets.INSALES_SHOP_ID }}
+          INSALES_API_KEY: ${{ secrets.INSALES_API_KEY }}
+          INSALES_API_PASSWORD: ${{ secrets.INSALES_API_PASSWORD }}
+        run: |
+          if [ -z "$INSALES_SHOP_ID" ]; then
+            echo "⏭️  Синхронизация insales отключена (учетные данные не установлены)"
+          else
+            echo "🔄 Синхронизирую товары в insales..."
+            python infrastructure/scripts/sync_insales.py
+          fi
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
