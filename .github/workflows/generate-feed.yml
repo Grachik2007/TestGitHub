@@ -1,0 +1,49 @@
+name: Generate Product Feed
+
+on:
+  schedule:
+    # Запускается каждый день в 00:30 MSK (21:30 UTC предыдущего дня)
+    - cron: '30 21 * * *'
+  workflow_dispatch:  # Можно запустить вручную
+
+jobs:
+  generate-feed:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install httpx requests
+
+      - name: Generate product feed
+        env:
+          CTRADEI_LOGIN: ${{ secrets.CTRADEI_LOGIN }}
+          CTRADEI_PASSWORD: ${{ secrets.CTRADEI_PASSWORD }}
+          GIGACHAT_CLIENT_ID: ${{ secrets.GIGACHAT_CLIENT_ID }}
+          GIGACHAT_CLIENT_SECRET: ${{ secrets.GIGACHAT_CLIENT_SECRET }}
+        run: |
+          python scripts/generate_feed.py
+
+      - name: Generate agent dashboard
+        run: |
+          python scripts/generate_dashboard.py
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./public
+          cname: wonderfulbed-agents.github.io
