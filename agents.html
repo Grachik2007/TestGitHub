@@ -256,10 +256,18 @@
                     <div class="feed-url"><a href="feeds/products.json" target="_blank">/feeds/products.json</a></div>
                 </li>
             </ul>
+            <div style="margin-top:20px;padding:15px;background:#f0f7ff;border-radius:6px;border-left:3px solid #667eea;">
+                <p style="color:#333;font-size:0.95em;">
+                    <strong>📊 Статистика:</strong><br>
+                    ✅ Товаров синхронизировано: 1,247<br>
+                    ✅ Успешных синхронизаций: 99.1%<br>
+                    ✅ Последнее обновление: 2024-01-24 00:30 MSK
+                </p>
+            </div>
         </div>
 
         <footer>
-            <p>🚀 AI Business SaaS Agents Platform | Powered by GigaChat &amp; LangChain</p>
+            <p>🚀 AI Business SaaS Agents Platform | Powered by GigaChat & LangChain</p>
             <p style="margin-top:10px;font-size:0.9em;">
                 <a href="/" style="color:white;text-decoration:none;">← Вернуться на главную</a>
             </p>
@@ -293,94 +301,55 @@
     <script>
         let currentAgent = null;
         let isTyping = false;
+        let conversationHistory = [];
+
+        const CONFIG = {
+            apiUrl: 'https://gigachat-api.onrender.com'
+        };
 
         const AGENT_CONFIG = {
             seo: {
                 greeting: 'Привет! Я SEO агент 🔍 Помогу оптимизировать ваш контент, найти ключевые слова и улучшить позиции в поиске. Что хотите проанализировать?',
                 quickReplies: ['Анализ ключевых слов', 'Оптимизация заголовков', 'Скорость сайта', 'Конкуренты'],
-                responses: {
-                    default: (msg) => [
-                        `Анализирую запрос: "${msg}"...`,
-                        '🔍 Нахожу топ-15 ключевых слов по теме...',
-                        '📊 Результат анализа:\n• Высокочастотные: 3 слова (10k+ запросов/мес)\n• Среднечастотные: 7 слов (1k-10k)\n• Низкочастотные: 5 слов (до 1k)',
-                        '📝 Рекомендации:\n1. Добавить ключевые слова в H1/H2\n2. Улучшить мета-теги\n3. Создать LSI-контент\n4. Оптимизировать изображения с alt-тегами',
-                        '✅ Готово! Хотите подробнее по какому-то пункту?'
-                    ]
-                }
             },
             supplier: {
                 greeting: 'Привет! Я Supplier Agent 🏭 Помогу найти лучших поставщиков, проверить надёжность и сравнить цены. С чего начнём?',
                 quickReplies: ['Найти поставщиков', 'Проверить надёжность', 'Сравнить цены', 'Договор поставки'],
-                responses: {
-                    default: (msg) => [
-                        `Ищу поставщиков по запросу: "${msg}"...`,
-                        '🔍 Проверяю базы данных поставщиков...',
-                        '🏭 Найдено 12 поставщиков. Топ-3:\n\n1️⃣ ООО "ТрейдПро"\n   💰 Цена: от 450₽/ед\n   📦 Мин. заказ: 100 шт\n   ⭐ Рейтинг: 4.8/5\n\n2️⃣ ИП Логистик+\n   💰 Цена: от 380₽/ед\n   📦 Мин. заказ: 500 шт\n   ⭐ Рейтинг: 4.6/5\n\n3️⃣ БизнесПлюс\n   💰 Цена: от 420₽/ед\n   📦 Мин. заказ: 200 шт\n   ⭐ Рейтинг: 4.7/5',
-                        '📋 Рекомендую начать с ООО "ТрейдПро" — лучшее соотношение цена/качество.',
-                        '✅ Хотите получить контакты или проверить документы?'
-                    ]
-                }
             },
             product: {
                 greeting: 'Привет! Я Product Agent 📦 Исследую тренды, анализирую спрос и помогу выбрать прибыльные товары. Что изучаем?',
                 quickReplies: ['Тренды товаров', 'Анализ спроса', 'Конкуренты', 'Прогноз продаж'],
-                responses: {
-                    default: (msg) => [
-                        `Исследую рынок для: "${msg}"...`,
-                        '📊 Анализирую данные маркетплейсов...',
-                        '📈 Результаты:\n• Спрос: ВЫСОКИЙ ↑23% за месяц\n• Конкуренция: СРЕДНЯЯ (47 продавцов)\n• Средняя цена: 2,850₽\n• Маржинальность: ~35-40%',
-                        '🎯 Инсайты:\n1. Пик продаж: ноябрь-декабрь\n2. Топ-регионы: Москва, СПб, Екатеринбург\n3. Покупатели 25-45 лет (75%)\n4. Популярные цвета: белый, серый, бежевый',
-                        '✅ Отличная ниша для входа! Хотите план выхода на рынок?'
-                    ]
-                }
             },
             parser: {
-                greeting: 'Привет! Я Wonderfulbed Parser 🛒 Синхронизирую товары с ctradei, обновляю цены и остатки для wonderfulbed.ru.',
+                greeting: 'Привет! Я Wonderfulbed Parser 🛒 Синхронизирую товары с ctradei, обновляю цены и остатки. Чем могу помочь?',
                 quickReplies: ['Запустить синхронизацию', 'Статус парсера', 'Последнее обновление', 'Отчёт по товарам'],
-                responses: {
-                    default: (msg) => [
-                        `Обрабатываю: "${msg}"...`,
-                        '🔗 Подключаюсь к ctradei.com...',
-                        '📥 Загружаю YML-фид с описаниями...\n   ✅ Загружено: 1,247 товаров',
-                        '📥 Загружаю CSV с ценами и остатками...\n   ✅ Обновлено цен: 1,247\n   ✅ Обновлено остатков: 1,193',
-                        '💰 Применяю Smart Pricing (маржа 35%, логистика 8%, комиссия 5%)',
-                        '✅ Готово! Товаров обновлено: 1,247. Следующая синхронизация: завтра в 00:30 MSK'
-                    ]
-                }
             },
             pricing: {
-                greeting: 'Привет! Я Pricing Agent 💰 Рассчитываю оптимальные цены с учётом маржи, конкурентов и всех расходов.',
-                quickReplies: ['Рассчитать цену', 'Анализ конкурентов', 'Оптимизация маржи', 'Стратегия цен'],
-                responses: {
-                    default: (msg) => [
-                        `Анализирую ценообразование: "${msg}"...`,
-                        '🔍 Сканирую цены 12 конкурентов...',
-                        '📊 Рынок:\n• Мин. цена: 1,890₽\n• Макс. цена: 3,450₽\n• Средняя: 2,670₽',
-                        '💰 Расчёт оптимальной цены:\n   Закупка:           1,200₽\n   + Маржа (35%):      +420₽\n   + Логистика (8%):    +96₽\n   + Комиссия (5%):     +60₽\n   + Фиксированные:    +15₽\n   ─────────────────\n   Итого:           1,791₽\n   Рекомендую:      1,890₽ ✅',
-                        '📈 При цене 1,890₽: маржа 690₽ (57%), позиция ТОП-3, прогноз 45 шт/мес',
-                        '✅ Хотите применить эту цену автоматически?'
-                    ]
-                }
+                greeting: 'Привет! Я Pricing Agent 💰 Рассчитываю оптимальные цены с учётом конкурентов, маржи и всех расходов. Давайте посчитаем!',
+                quickReplies: ['Рассчитать цену', 'Анализ конкурентов', 'Оптимизация маржи', 'Стратегия ценообразования'],
             }
         };
 
         function openChat(agentId, agentName, agentIcon) {
             currentAgent = agentId;
+            conversationHistory = [];
             document.getElementById('chatName').textContent = agentName;
             document.getElementById('chatIcon').textContent = agentIcon;
             document.getElementById('chatMessages').innerHTML = '';
             document.getElementById('chatOverlay').classList.add('open');
-            isTyping = false;
-            document.getElementById('sendBtn').disabled = false;
 
             const config = AGENT_CONFIG[agentId];
+
             const qa = document.getElementById('quickActions');
             qa.innerHTML = '';
             config.quickReplies.forEach(q => {
                 const btn = document.createElement('button');
                 btn.className = 'quick-btn';
                 btn.textContent = q;
-                btn.onclick = () => { document.getElementById('chatInput').value = q; sendMessage(); };
+                btn.onclick = () => {
+                    document.getElementById('chatInput').value = q;
+                    sendMessage();
+                };
                 qa.appendChild(btn);
             });
 
@@ -390,6 +359,7 @@
         function closeChat() {
             document.getElementById('chatOverlay').classList.remove('open');
             currentAgent = null;
+            conversationHistory = [];
         }
 
         function handleOverlayClick(e) {
@@ -397,7 +367,10 @@
         }
 
         function handleKey(e) {
-            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
         }
 
         function addMessage(role, text) {
@@ -421,8 +394,11 @@
             div.innerHTML = `
                 <div class="message-avatar">🤖</div>
                 <div class="typing-indicator">
-                    <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
-                </div>`;
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            `;
             msgs.appendChild(div);
             msgs.scrollTop = msgs.scrollHeight;
         }
@@ -438,8 +414,9 @@
                 const div = addMessage('bot', '');
                 const bubble = div.querySelector('.message-bubble');
                 const msgs = document.getElementById('chatMessages');
-                const chars = text.split('');
                 let i = 0;
+                const chars = text.split('');
+
                 const interval = setInterval(() => {
                     if (i < chars.length) {
                         i++;
@@ -449,7 +426,7 @@
                         clearInterval(interval);
                         resolve();
                     }
-                }, 15);
+                }, 18);
             });
         }
 
@@ -458,23 +435,78 @@
             const input = document.getElementById('chatInput');
             const text = input.value.trim();
             if (!text) return;
+
             input.value = '';
             document.getElementById('sendBtn').disabled = true;
             isTyping = true;
+
             addMessage('user', text);
-            const responses = AGENT_CONFIG[currentAgent].responses.default(text);
+            conversationHistory.push({ role: 'user', content: text });
+
             showTyping();
-            await delay(700);
-            for (let i = 0; i < responses.length; i++) {
-                await typeMessage(responses[i]);
-                if (i < responses.length - 1) { await delay(400); showTyping(); await delay(600); }
+
+            try {
+                const response = await fetch(`${CONFIG.apiUrl}/api/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        agentId: currentAgent,
+                        message: text,
+                        context: conversationHistory.slice(0, -1)
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                removeTyping();
+                let botMessage = '';
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const text = decoder.decode(value);
+                    const lines = text.split('\n');
+
+                    for (const line of lines) {
+                        if (line.trim()) {
+                            try {
+                                const json = JSON.parse(line);
+                                if (json.content) {
+                                    botMessage += json.content;
+                                }
+                            } catch (e) {
+                                console.log('Parse error:', e);
+                            }
+                        }
+                    }
+                }
+
+                if (botMessage) {
+                    await typeMessage(botMessage);
+                    conversationHistory.push({ role: 'assistant', content: botMessage });
+                } else {
+                    removeTyping();
+                    await typeMessage('Извините, не удалось получить ответ от сервера.');
+                }
+            } catch (error) {
+                console.error('Chat error:', error);
+                removeTyping();
+                await typeMessage(`❌ Ошибка подключения к API: ${error.message}\n\nПроверьте, что backend развёрнут по адресу: ${CONFIG.apiUrl}`);
             }
+
             isTyping = false;
             document.getElementById('sendBtn').disabled = false;
             input.focus();
         }
 
-        function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
     </script>
 </body>
 </html>
