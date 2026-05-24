@@ -6,261 +6,149 @@
     <title>🤖 AI Agents Management</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-        }
-
-        h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        }
-
-        .subtitle {
-            font-size: 1.1em;
-            opacity: 0.9;
-        }
-
-        .agents-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-
+        .container { max-width: 1200px; margin: 0 auto; }
+        header { text-align: center; color: white; margin-bottom: 40px; }
+        h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+        .subtitle { font-size: 1.1em; opacity: 0.9; }
+        .agents-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 20px; margin-bottom: 40px; }
         .agent-card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-            transition: all 0.3s ease;
+            background: white; border-radius: 12px; padding: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2); transition: all 0.3s ease;
             border-left: 4px solid #667eea;
         }
+        .agent-card:hover { transform: translateY(-5px); box-shadow: 0 12px 48px rgba(0,0,0,0.3); }
+        .agent-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+        .agent-icon { font-size: 2em; }
+        .agent-name { font-size: 1.3em; font-weight: 600; color: #333; }
+        .agent-status { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.85em; font-weight: 600; margin-top: 8px; }
+        .status-active { background: #d4edda; color: #155724; }
+        .status-idle { background: #e2e3e5; color: #383d41; }
+        .agent-description { color: #666; margin-bottom: 12px; line-height: 1.5; }
+        .agent-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; padding-top: 12px; border-top: 1px solid #eee; }
+        .stat { text-align: center; }
+        .stat-value { font-size: 1.4em; font-weight: 600; color: #667eea; }
+        .stat-label { font-size: 0.85em; color: #999; margin-top: 4px; }
+        .agent-actions { display: flex; gap: 8px; }
+        .btn { flex: 1; padding: 10px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 0.9em; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5568d3; transform: scale(1.02); }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-secondary:hover { background: #e0e0e0; }
+        .live-badge { display: inline-block; padding: 4px 12px; background: #10b981; color: white; border-radius: 20px; font-size: 0.8em; margin-left: 10px; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        footer { text-align: center; color: white; margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.2); opacity: 0.8; }
+        @media (max-width: 768px) { h1 { font-size: 1.8em; } .agents-grid { grid-template-columns: 1fr; } }
 
-        .agent-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 48px rgba(0,0,0,0.3);
+        /* CHAT MODAL */
+        .chat-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+            z-index: 1000; align-items: center; justify-content: center; padding: 20px;
         }
-
-        .agent-header {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
+        .chat-overlay.open { display: flex; }
+        .chat-modal {
+            background: #1e293b; border: 1px solid #334155; border-radius: 20px;
+            width: 100%; max-width: 600px; max-height: 85vh;
+            display: flex; flex-direction: column; overflow: hidden;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.6);
         }
-
-        .agent-icon {
-            font-size: 2em;
+        .chat-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 20px 24px; border-bottom: 1px solid #334155;
+            background: #0f172a;
         }
-
-        .agent-name {
-            font-size: 1.3em;
-            font-weight: 600;
-            color: #333;
+        .chat-header-info { display: flex; align-items: center; gap: 12px; }
+        .chat-agent-icon { font-size: 1.8em; }
+        .chat-agent-name { font-size: 1.1em; font-weight: 700; color: white; }
+        .chat-agent-status { font-size: 0.8em; color: #10b981; margin-top: 2px; }
+        .chat-close {
+            background: none; border: none; color: #94a3b8;
+            font-size: 1.5em; cursor: pointer; padding: 4px; border-radius: 6px;
+            transition: all 0.2s;
         }
-
-        .agent-status {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            font-weight: 600;
-            margin-top: 8px;
+        .chat-close:hover { color: white; background: #334155; }
+        .chat-messages {
+            flex: 1; overflow-y: auto; padding: 20px;
+            display: flex; flex-direction: column; gap: 16px;
+            scroll-behavior: smooth;
         }
-
-        .status-active {
-            background: #d4edda;
-            color: #155724;
+        .chat-messages::-webkit-scrollbar { width: 4px; }
+        .chat-messages::-webkit-scrollbar-track { background: transparent; }
+        .chat-messages::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        .message { display: flex; gap: 10px; }
+        .message.user { flex-direction: row-reverse; }
+        .message-avatar {
+            width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; font-size: 1em;
         }
-
-        .status-idle {
-            background: #e2e3e5;
-            color: #383d41;
+        .message.bot .message-avatar { background: #334155; }
+        .message.user .message-avatar { background: #667eea; }
+        .message-bubble {
+            max-width: 75%; padding: 12px 16px; border-radius: 16px;
+            font-size: 0.92em; line-height: 1.6;
         }
-
-        .agent-description {
-            color: #666;
-            margin-bottom: 12px;
-            line-height: 1.5;
+        .message.bot .message-bubble { background: #334155; color: #e2e8f0; border-bottom-left-radius: 4px; }
+        .message.user .message-bubble { background: #667eea; color: white; border-bottom-right-radius: 4px; }
+        .typing-indicator {
+            display: flex; gap: 4px; padding: 14px 18px;
+            background: #334155; border-radius: 16px; border-bottom-left-radius: 4px;
+            width: fit-content;
         }
-
-        .agent-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 16px;
-            padding-top: 12px;
-            border-top: 1px solid #eee;
+        .typing-dot {
+            width: 8px; height: 8px; background: #94a3b8; border-radius: 50%;
+            animation: typing 1.2s infinite ease-in-out;
         }
-
-        .stat {
-            text-align: center;
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing { 0%, 100% { transform: translateY(0); opacity: 0.5; } 50% { transform: translateY(-6px); opacity: 1; } }
+        .chat-input-area { padding: 16px 20px; border-top: 1px solid #334155; background: #0f172a; }
+        .chat-input-row { display: flex; gap: 10px; }
+        .chat-input {
+            flex: 1; background: #1e293b; border: 1px solid #334155; border-radius: 12px;
+            padding: 12px 16px; color: white; font-size: 0.95em; outline: none;
+            transition: border-color 0.2s;
         }
-
-        .stat-value {
-            font-size: 1.4em;
-            font-weight: 600;
-            color: #667eea;
+        .chat-input:focus { border-color: #667eea; }
+        .chat-input::placeholder { color: #64748b; }
+        .chat-send {
+            background: #667eea; color: white; border: none; border-radius: 12px;
+            padding: 12px 20px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s; font-size: 0.95em;
         }
-
-        .stat-label {
-            font-size: 0.85em;
-            color: #999;
-            margin-top: 4px;
+        .chat-send:hover { background: #5568d3; transform: scale(1.02); }
+        .chat-send:disabled { background: #334155; color: #64748b; cursor: not-allowed; transform: none; }
+        .quick-actions { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+        .quick-btn {
+            background: #1e293b; border: 1px solid #334155; color: #94a3b8;
+            padding: 6px 12px; border-radius: 20px; font-size: 0.8em;
+            cursor: pointer; transition: all 0.2s;
         }
-
-        .agent-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 10px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.9em;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-        }
-
-        .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .btn-secondary:hover {
-            background: #e0e0e0;
-        }
-
-        .parser-section {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-        }
-
-        .section-title {
-            font-size: 1.5em;
-            color: #333;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sync-status {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .sync-time {
-            font-size: 2.5em;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .sync-info {
-            font-size: 0.95em;
-            opacity: 0.9;
-        }
-
-        .feed-list {
-            list-style: none;
-        }
-
-        .feed-item {
-            padding: 12px;
-            background: #f9f9f9;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border-left: 3px solid #667eea;
-        }
-
-        .feed-url {
-            color: #667eea;
-            font-family: monospace;
-            word-break: break-all;
-            font-size: 0.9em;
-        }
-
-        .feed-label {
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 4px;
-        }
-
-        footer {
-            text-align: center;
-            color: white;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.2);
-            opacity: 0.8;
-        }
-
-        .live-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: #10b981;
-            color: white;
-            border-radius: 20px;
-            font-size: 0.8em;
-            margin-left: 10px;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        @media (max-width: 768px) {
-            h1 { font-size: 1.8em; }
-            .agents-grid { grid-template-columns: 1fr; }
-            .agent-stats { grid-template-columns: 1fr; }
-        }
+        .quick-btn:hover { border-color: #667eea; color: #667eea; }
+        .parser-section { background: white; border-radius: 12px; padding: 24px; margin-bottom: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+        .section-title { font-size: 1.5em; color: #333; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .sync-status { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .sync-time { font-size: 2.5em; font-weight: bold; margin-bottom: 10px; }
+        .sync-info { font-size: 0.95em; opacity: 0.9; }
+        .feed-list { list-style: none; }
+        .feed-item { padding: 12px; background: #f9f9f9; margin-bottom: 10px; border-radius: 6px; border-left: 3px solid #667eea; }
+        .feed-url { color: #667eea; font-family: monospace; word-break: break-all; font-size: 0.9em; }
+        .feed-label { font-weight: 600; color: #333; margin-bottom: 4px; }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
             <h1>🤖 AI Agents Management</h1>
-            <p class="subtitle">Управление мультиагентной системой обогащения товаров</p>
+            <p class="subtitle">Управление мультиагентной системой для автоматизации задач</p>
         </header>
 
-        <!-- Agents Grid -->
         <div class="agents-grid">
-            <!-- SEO Agent -->
             <div class="agent-card">
                 <div class="agent-header">
                     <span class="agent-icon">🔍</span>
@@ -269,22 +157,15 @@
                 <p class="agent-description">Анализ ключевых слов и оптимизация контента</p>
                 <span class="agent-status status-active">🟢 Active</span>
                 <div class="agent-stats">
-                    <div class="stat">
-                        <div class="stat-value">1,234</div>
-                        <div class="stat-label">Задач</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">98.5%</div>
-                        <div class="stat-label">Успешность</div>
-                    </div>
+                    <div class="stat"><div class="stat-value">1,234</div><div class="stat-label">Задач</div></div>
+                    <div class="stat"><div class="stat-value">98.5%</div><div class="stat-label">Успешность</div></div>
                 </div>
                 <div class="agent-actions">
-                    <button class="btn btn-primary">💬 Chat</button>
+                    <button class="btn btn-primary" onclick="openChat('seo','SEO Agent','🔍')">💬 Chat</button>
                     <button class="btn btn-secondary">⚙️ Settings</button>
                 </div>
             </div>
 
-            <!-- Supplier Agent -->
             <div class="agent-card">
                 <div class="agent-header">
                     <span class="agent-icon">🏭</span>
@@ -293,22 +174,15 @@
                 <p class="agent-description">Поиск и анализ поставщиков</p>
                 <span class="agent-status status-active">🟢 Active</span>
                 <div class="agent-stats">
-                    <div class="stat">
-                        <div class="stat-value">567</div>
-                        <div class="stat-label">Задач</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">95.2%</div>
-                        <div class="stat-label">Успешность</div>
-                    </div>
+                    <div class="stat"><div class="stat-value">567</div><div class="stat-label">Задач</div></div>
+                    <div class="stat"><div class="stat-value">95.2%</div><div class="stat-label">Успешность</div></div>
                 </div>
                 <div class="agent-actions">
-                    <button class="btn btn-primary">💬 Chat</button>
+                    <button class="btn btn-primary" onclick="openChat('supplier','Supplier Agent','🏭')">💬 Chat</button>
                     <button class="btn btn-secondary">⚙️ Settings</button>
                 </div>
             </div>
 
-            <!-- Product Agent -->
             <div class="agent-card">
                 <div class="agent-header">
                     <span class="agent-icon">📦</span>
@@ -317,22 +191,15 @@
                 <p class="agent-description">Исследование трендов и товаров</p>
                 <span class="agent-status status-active">🟢 Active</span>
                 <div class="agent-stats">
-                    <div class="stat">
-                        <div class="stat-value">892</div>
-                        <div class="stat-label">Задач</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">96.8%</div>
-                        <div class="stat-label">Успешность</div>
-                    </div>
+                    <div class="stat"><div class="stat-value">892</div><div class="stat-label">Задач</div></div>
+                    <div class="stat"><div class="stat-value">96.8%</div><div class="stat-label">Успешность</div></div>
                 </div>
                 <div class="agent-actions">
-                    <button class="btn btn-primary">💬 Chat</button>
+                    <button class="btn btn-primary" onclick="openChat('product','Product Agent','📦')">💬 Chat</button>
                     <button class="btn btn-secondary">⚙️ Settings</button>
                 </div>
             </div>
 
-            <!-- Wonderfulbed Parser -->
             <div class="agent-card" style="border-left-color: #f59e0b;">
                 <div class="agent-header">
                     <span class="agent-icon">🛒</span>
@@ -341,22 +208,15 @@
                 <p class="agent-description">Парсинг товаров с ctradei для wonderfulbed.ru</p>
                 <span class="agent-status status-active">🟢 Active</span>
                 <div class="agent-stats">
-                    <div class="stat">
-                        <div class="stat-value">1,247</div>
-                        <div class="stat-label">Товаров</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">99.1%</div>
-                        <div class="stat-label">Успешность</div>
-                    </div>
+                    <div class="stat"><div class="stat-value">1,247</div><div class="stat-label">Товаров</div></div>
+                    <div class="stat"><div class="stat-value">99.1%</div><div class="stat-label">Успешность</div></div>
                 </div>
                 <div class="agent-actions">
-                    <button class="btn btn-primary">🚀 Sync Now</button>
+                    <button class="btn btn-primary" onclick="openChat('parser','Wonderfulbed Parser','🛒')">💬 Chat</button>
                     <button class="btn btn-secondary">📋 Logs</button>
                 </div>
             </div>
 
-            <!-- Pricing Agent -->
             <div class="agent-card">
                 <div class="agent-header">
                     <span class="agent-icon">💰</span>
@@ -365,94 +225,256 @@
                 <p class="agent-description">Оптимизация цен и анализ конкурентов</p>
                 <span class="agent-status status-idle">⚫ Idle</span>
                 <div class="agent-stats">
-                    <div class="stat">
-                        <div class="stat-value">234</div>
-                        <div class="stat-label">Задач</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-value">94.7%</div>
-                        <div class="stat-label">Успешность</div>
-                    </div>
+                    <div class="stat"><div class="stat-value">234</div><div class="stat-label">Задач</div></div>
+                    <div class="stat"><div class="stat-value">94.7%</div><div class="stat-label">Успешность</div></div>
                 </div>
                 <div class="agent-actions">
-                    <button class="btn btn-primary">💬 Chat</button>
+                    <button class="btn btn-primary" onclick="openChat('pricing','Pricing Agent','💰')">💬 Chat</button>
                     <button class="btn btn-secondary">⚙️ Settings</button>
                 </div>
             </div>
         </div>
 
-        <!-- Parser Section -->
         <div class="parser-section">
-            <h2 class="section-title">
-                <span>🛒</span>
-                Wonderfulbed Parser
-                <span class="live-badge">LIVE</span>
-            </h2>
-
+            <h2 class="section-title">🛒 Wonderfulbed Parser <span class="live-badge">LIVE</span></h2>
             <div class="sync-status">
                 <div class="sync-time">00:30 MSK</div>
                 <div class="sync-info">⏰ Следующее автоматическое обновление товарного фида</div>
             </div>
-
-            <h3 style="color: #333; margin-bottom: 15px;">📋 Товарные фиды:</h3>
+            <h3 style="color:#333;margin-bottom:15px;">📋 Товарные фиды:</h3>
             <ul class="feed-list">
                 <li class="feed-item">
                     <div class="feed-label">🔗 Yandex Market Feed</div>
-                    <div class="feed-url">
-                        <a href="feeds/yandex-market.xml" target="_blank">
-                            /feeds/yandex-market.xml
-                        </a>
-                    </div>
+                    <div class="feed-url"><a href="feeds/yandex-market.xml" target="_blank">/feeds/yandex-market.xml</a></div>
                 </li>
                 <li class="feed-item">
                     <div class="feed-label">🔗 Google Merchant Center Feed</div>
-                    <div class="feed-url">
-                        <a href="feeds/google-merchant.xml" target="_blank">
-                            /feeds/google-merchant.xml
-                        </a>
-                    </div>
+                    <div class="feed-url"><a href="feeds/google-merchant.xml" target="_blank">/feeds/google-merchant.xml</a></div>
                 </li>
                 <li class="feed-item">
                     <div class="feed-label">🔗 JSON Feed (API)</div>
-                    <div class="feed-url">
-                        <a href="feeds/products.json" target="_blank">
-                            /feeds/products.json
-                        </a>
-                    </div>
+                    <div class="feed-url"><a href="feeds/products.json" target="_blank">/feeds/products.json</a></div>
                 </li>
             </ul>
-
-            <div style="margin-top: 20px; padding: 15px; background: #f0f7ff; border-radius: 6px; border-left: 3px solid #667eea;">
-                <p style="color: #333; font-size: 0.95em;">
-                    <strong>📊 Статистика:</strong><br>
-                    ✅ Товаров синхронизировано: 1,247<br>
-                    ✅ Успешных синхронизаций: 99.1%<br>
-                    ✅ Последнее обновление: 2024-01-24 00:30 MSK<br>
-                    ✅ Следующее обновление: 2024-01-25 00:30 MSK
-                </p>
-            </div>
         </div>
 
         <footer>
-            <p>🚀 AI Business SaaS Agents Platform | Powered by GigaChat & LangChain</p>
-            <p style="margin-top: 10px; font-size: 0.9em;">
-                <a href="/" style="color: white; text-decoration: none;">← Вернуться на главную</a>
+            <p>🚀 AI Business SaaS Agents Platform | Powered by GigaChat &amp; LangChain</p>
+            <p style="margin-top:10px;font-size:0.9em;">
+                <a href="/" style="color:white;text-decoration:none;">← Вернуться на главную</a>
             </p>
         </footer>
     </div>
 
-    <script>
-        // Simple demo interactivity
-        document.querySelectorAll('.btn-primary').forEach(btn => {
-            btn.addEventListener('click', function() {
-                alert('🤖 Agent interaction coming soon!');
-            });
-        });
+    <!-- CHAT MODAL -->
+    <div class="chat-overlay" id="chatOverlay" onclick="handleOverlayClick(event)">
+        <div class="chat-modal">
+            <div class="chat-header">
+                <div class="chat-header-info">
+                    <span class="chat-agent-icon" id="chatIcon">🤖</span>
+                    <div>
+                        <div class="chat-agent-name" id="chatName">Agent</div>
+                        <div class="chat-agent-status">🟢 Online · готов к работе</div>
+                    </div>
+                </div>
+                <button class="chat-close" onclick="closeChat()">✕</button>
+            </div>
+            <div class="chat-messages" id="chatMessages"></div>
+            <div class="chat-input-area">
+                <div class="quick-actions" id="quickActions"></div>
+                <div class="chat-input-row">
+                    <input class="chat-input" id="chatInput" placeholder="Напиши свой вопрос..." onkeydown="handleKey(event)">
+                    <button class="chat-send" id="sendBtn" onclick="sendMessage()">Отправить</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        document.querySelectorAll('a[target="_blank"]').forEach(link => {
-            link.style.color = '#667eea';
-            link.style.textDecoration = 'none';
-        });
+    <script>
+        let currentAgent = null;
+        let isTyping = false;
+
+        const AGENT_CONFIG = {
+            seo: {
+                greeting: 'Привет! Я SEO агент 🔍 Помогу оптимизировать ваш контент, найти ключевые слова и улучшить позиции в поиске. Что хотите проанализировать?',
+                quickReplies: ['Анализ ключевых слов', 'Оптимизация заголовков', 'Скорость сайта', 'Конкуренты'],
+                responses: {
+                    default: (msg) => [
+                        `Анализирую запрос: "${msg}"...`,
+                        '🔍 Нахожу топ-15 ключевых слов по теме...',
+                        '📊 Результат анализа:\n• Высокочастотные: 3 слова (10k+ запросов/мес)\n• Среднечастотные: 7 слов (1k-10k)\n• Низкочастотные: 5 слов (до 1k)',
+                        '📝 Рекомендации:\n1. Добавить ключевые слова в H1/H2\n2. Улучшить мета-теги\n3. Создать LSI-контент\n4. Оптимизировать изображения с alt-тегами',
+                        '✅ Готово! Хотите подробнее по какому-то пункту?'
+                    ]
+                }
+            },
+            supplier: {
+                greeting: 'Привет! Я Supplier Agent 🏭 Помогу найти лучших поставщиков, проверить надёжность и сравнить цены. С чего начнём?',
+                quickReplies: ['Найти поставщиков', 'Проверить надёжность', 'Сравнить цены', 'Договор поставки'],
+                responses: {
+                    default: (msg) => [
+                        `Ищу поставщиков по запросу: "${msg}"...`,
+                        '🔍 Проверяю базы данных поставщиков...',
+                        '🏭 Найдено 12 поставщиков. Топ-3:\n\n1️⃣ ООО "ТрейдПро"\n   💰 Цена: от 450₽/ед\n   📦 Мин. заказ: 100 шт\n   ⭐ Рейтинг: 4.8/5\n\n2️⃣ ИП Логистик+\n   💰 Цена: от 380₽/ед\n   📦 Мин. заказ: 500 шт\n   ⭐ Рейтинг: 4.6/5\n\n3️⃣ БизнесПлюс\n   💰 Цена: от 420₽/ед\n   📦 Мин. заказ: 200 шт\n   ⭐ Рейтинг: 4.7/5',
+                        '📋 Рекомендую начать с ООО "ТрейдПро" — лучшее соотношение цена/качество.',
+                        '✅ Хотите получить контакты или проверить документы?'
+                    ]
+                }
+            },
+            product: {
+                greeting: 'Привет! Я Product Agent 📦 Исследую тренды, анализирую спрос и помогу выбрать прибыльные товары. Что изучаем?',
+                quickReplies: ['Тренды товаров', 'Анализ спроса', 'Конкуренты', 'Прогноз продаж'],
+                responses: {
+                    default: (msg) => [
+                        `Исследую рынок для: "${msg}"...`,
+                        '📊 Анализирую данные маркетплейсов...',
+                        '📈 Результаты:\n• Спрос: ВЫСОКИЙ ↑23% за месяц\n• Конкуренция: СРЕДНЯЯ (47 продавцов)\n• Средняя цена: 2,850₽\n• Маржинальность: ~35-40%',
+                        '🎯 Инсайты:\n1. Пик продаж: ноябрь-декабрь\n2. Топ-регионы: Москва, СПб, Екатеринбург\n3. Покупатели 25-45 лет (75%)\n4. Популярные цвета: белый, серый, бежевый',
+                        '✅ Отличная ниша для входа! Хотите план выхода на рынок?'
+                    ]
+                }
+            },
+            parser: {
+                greeting: 'Привет! Я Wonderfulbed Parser 🛒 Синхронизирую товары с ctradei, обновляю цены и остатки для wonderfulbed.ru.',
+                quickReplies: ['Запустить синхронизацию', 'Статус парсера', 'Последнее обновление', 'Отчёт по товарам'],
+                responses: {
+                    default: (msg) => [
+                        `Обрабатываю: "${msg}"...`,
+                        '🔗 Подключаюсь к ctradei.com...',
+                        '📥 Загружаю YML-фид с описаниями...\n   ✅ Загружено: 1,247 товаров',
+                        '📥 Загружаю CSV с ценами и остатками...\n   ✅ Обновлено цен: 1,247\n   ✅ Обновлено остатков: 1,193',
+                        '💰 Применяю Smart Pricing (маржа 35%, логистика 8%, комиссия 5%)',
+                        '✅ Готово! Товаров обновлено: 1,247. Следующая синхронизация: завтра в 00:30 MSK'
+                    ]
+                }
+            },
+            pricing: {
+                greeting: 'Привет! Я Pricing Agent 💰 Рассчитываю оптимальные цены с учётом маржи, конкурентов и всех расходов.',
+                quickReplies: ['Рассчитать цену', 'Анализ конкурентов', 'Оптимизация маржи', 'Стратегия цен'],
+                responses: {
+                    default: (msg) => [
+                        `Анализирую ценообразование: "${msg}"...`,
+                        '🔍 Сканирую цены 12 конкурентов...',
+                        '📊 Рынок:\n• Мин. цена: 1,890₽\n• Макс. цена: 3,450₽\n• Средняя: 2,670₽',
+                        '💰 Расчёт оптимальной цены:\n   Закупка:           1,200₽\n   + Маржа (35%):      +420₽\n   + Логистика (8%):    +96₽\n   + Комиссия (5%):     +60₽\n   + Фиксированные:    +15₽\n   ─────────────────\n   Итого:           1,791₽\n   Рекомендую:      1,890₽ ✅',
+                        '📈 При цене 1,890₽: маржа 690₽ (57%), позиция ТОП-3, прогноз 45 шт/мес',
+                        '✅ Хотите применить эту цену автоматически?'
+                    ]
+                }
+            }
+        };
+
+        function openChat(agentId, agentName, agentIcon) {
+            currentAgent = agentId;
+            document.getElementById('chatName').textContent = agentName;
+            document.getElementById('chatIcon').textContent = agentIcon;
+            document.getElementById('chatMessages').innerHTML = '';
+            document.getElementById('chatOverlay').classList.add('open');
+            isTyping = false;
+            document.getElementById('sendBtn').disabled = false;
+
+            const config = AGENT_CONFIG[agentId];
+            const qa = document.getElementById('quickActions');
+            qa.innerHTML = '';
+            config.quickReplies.forEach(q => {
+                const btn = document.createElement('button');
+                btn.className = 'quick-btn';
+                btn.textContent = q;
+                btn.onclick = () => { document.getElementById('chatInput').value = q; sendMessage(); };
+                qa.appendChild(btn);
+            });
+
+            setTimeout(() => addMessage('bot', config.greeting), 400);
+        }
+
+        function closeChat() {
+            document.getElementById('chatOverlay').classList.remove('open');
+            currentAgent = null;
+        }
+
+        function handleOverlayClick(e) {
+            if (e.target === document.getElementById('chatOverlay')) closeChat();
+        }
+
+        function handleKey(e) {
+            if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+        }
+
+        function addMessage(role, text) {
+            const msgs = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = `message ${role}`;
+            div.innerHTML = `
+                <div class="message-avatar">${role === 'bot' ? '🤖' : '👤'}</div>
+                <div class="message-bubble">${text.replace(/\n/g, '<br>')}</div>
+            `;
+            msgs.appendChild(div);
+            msgs.scrollTop = msgs.scrollHeight;
+            return div;
+        }
+
+        function showTyping() {
+            const msgs = document.getElementById('chatMessages');
+            const div = document.createElement('div');
+            div.className = 'message bot';
+            div.id = 'typingIndicator';
+            div.innerHTML = `
+                <div class="message-avatar">🤖</div>
+                <div class="typing-indicator">
+                    <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+                </div>`;
+            msgs.appendChild(div);
+            msgs.scrollTop = msgs.scrollHeight;
+        }
+
+        function removeTyping() {
+            const t = document.getElementById('typingIndicator');
+            if (t) t.remove();
+        }
+
+        async function typeMessage(text) {
+            return new Promise(resolve => {
+                removeTyping();
+                const div = addMessage('bot', '');
+                const bubble = div.querySelector('.message-bubble');
+                const msgs = document.getElementById('chatMessages');
+                const chars = text.split('');
+                let i = 0;
+                const interval = setInterval(() => {
+                    if (i < chars.length) {
+                        i++;
+                        bubble.innerHTML = text.slice(0, i).replace(/\n/g, '<br>');
+                        msgs.scrollTop = msgs.scrollHeight;
+                    } else {
+                        clearInterval(interval);
+                        resolve();
+                    }
+                }, 15);
+            });
+        }
+
+        async function sendMessage() {
+            if (isTyping) return;
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            document.getElementById('sendBtn').disabled = true;
+            isTyping = true;
+            addMessage('user', text);
+            const responses = AGENT_CONFIG[currentAgent].responses.default(text);
+            showTyping();
+            await delay(700);
+            for (let i = 0; i < responses.length; i++) {
+                await typeMessage(responses[i]);
+                if (i < responses.length - 1) { await delay(400); showTyping(); await delay(600); }
+            }
+            isTyping = false;
+            document.getElementById('sendBtn').disabled = false;
+            input.focus();
+        }
+
+        function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
     </script>
 </body>
 </html>
