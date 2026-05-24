@@ -278,7 +278,7 @@ export default function PricingPage() {
 
             {prices.length === 0 && (
               <div className="bg-white/5 border border-dashed border-white/20 rounded-2xl p-12 text-center">
-                <p className="text-slate-400 text-lg">Нажмите кнопку "Рассчитать цены" чтобы увидеть результаты</p>
+                <p className="text-slate-400 text-lg">Нажмите кнопку &quot;Рассчитать цены&quot; чтобы увидеть результаты</p>
               </div>
             )}
           </div>

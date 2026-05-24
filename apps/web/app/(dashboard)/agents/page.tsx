@@ -90,7 +90,7 @@ export default function AgentsPage() {
         },
       ])
     }
-  }, [showChat, selectedAgent])
+  }, [showChat, selectedAgent, messages.length])
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault()

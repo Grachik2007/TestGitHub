@@ -26,9 +26,13 @@ COPY --from=builder /app/package*.json ./
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.env.local ./.env.local
+COPY --from=builder /app/server.js ./server.js
 
 RUN npm install --legacy-peer-deps --only=production 2>&1 | tail -10
 
 EXPOSE 3000
+
+ENV NODE_ENV=production
+ENV PORT=3000
 
 CMD ["npm", "start"]
