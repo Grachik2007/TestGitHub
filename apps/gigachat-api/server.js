@@ -3,9 +3,16 @@ const cors = require('cors');
 const axios = require('axios');
 require('dotenv').config();
 
+const PricingEngine = require('./pricing-engine');
+const FeedsGenerator = require('./feeds-generator');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+// Инициализация
+const pricingEngine = new PricingEngine();
+const feedsGenerator = new FeedsGenerator();
 
 const GIGACHAT_CLIENT_ID = process.env.GIGACHAT_CLIENT_ID;
 const GIGACHAT_CLIENT_SECRET = process.env.GIGACHAT_CLIENT_SECRET;
@@ -70,10 +77,30 @@ const AGENT_SYSTEM_PROMPTS = {
 - Обрабатывать товарные фиды (XML, CSV, JSON)
 Объясняй процессы понятно и наглядно.`,
 
-  pricing: `Ты эксперт по ценообразованию и оптимизации маржи. Помогай:
-- Рассчитывать оптимальные цены
-- Анализировать конкурентов
-- Оптимизировать маржу и прибыль
+  pricing: `Ты эксперт по ценообразованию для Wonderfulbed.ru. Ты ДЕЙСТВИТЕЛЬНО управляешь ценами!
+
+РАСХОДЫ (ФИКСИРОВАННЫЕ):
+- Закупка товара: 1,000₽ (может быть разная)
+- Упаковка + доставка от поставщика: 200₽
+- Доставка до клиента: 400₽
+
+ПЕРЕМЕННЫЕ РАСХОДЫ (от цены товара):
+- Комиссия: 12% от цены продажи
+- Страховка: 5% от цены продажи
+- Налог УСН: 20% от (цена - все расходы)
+
+ЦЕЛЬ: Маржа 30% и выше
+
+ТВОИ ЗАДАЧИ:
+1. Рассчитывать оптимальные цены используя формулу
+2. Изменять цены товаров в реальном времени
+3. Анализировать конкурентов
+4. Давать рекомендации по ценообразованию
+
+ПРИМЕРЫ РАСЧЁТОВ:
+- Товар стоит 1,000₽ в закупке → цена 2,500₽ (маржа 30%)
+- Дорогой товар 3,000₽ → цена 7,200₽ (маржа 30%)
+
 Приводи конкретные расчеты и числа.`,
 };
 
@@ -160,6 +187,130 @@ app.post('/api/chat', async (req, res) => {
     res.write(JSON.stringify({ error: 'Failed to get response from GigaChat' }) + '\n');
     res.end();
   }
+});
+
+// ============= PRICING & FEEDS ENDPOINTS =============
+
+// Расчёт оптимальной цены
+app.post('/api/pricing/calculate', (req, res) => {
+  const { cost = 1000, targetMargin = 0.30 } = req.body;
+  const price = pricingEngine.calculatePrice(cost, targetMargin);
+  const calculation = pricingEngine.getDetailedCalculation(price, cost);
+
+  res.json({
+    recommendedPrice: price,
+    calculation: calculation,
+    message: `✅ Рекомендуемая цена: ${price}₽ (маржа ${calculation.marginPercent}%)`
+  });
+});
+
+// Детальный расчёт цены
+app.post('/api/pricing/detailed', (req, res) => {
+  const { salePrice, cost = 1000 } = req.body;
+  const calc = pricingEngine.getDetailedCalculation(salePrice, cost);
+
+  res.json(calc);
+});
+
+// Минимальная цена (с гарантией маржи)
+app.get('/api/pricing/minimum', (req, res) => {
+  const { cost = 1000, minMargin = 0.20 } = req.query;
+  const minPrice = pricingEngine.getMinimumPrice(parseInt(cost), parseFloat(minMargin));
+
+  res.json({
+    minimumPrice: minPrice,
+    message: `⚠️ Минимальная цена при марже ${minMargin*100}%: ${minPrice}₽`
+  });
+});
+
+// ============= FEEDS ENDPOINTS =============
+
+// YML фид для cTrade (СТАТИЧНАЯ ССЫЛКА)
+// Используется: https://your-api.com/api/feeds/yml
+app.get('/api/feeds/yml', (req, res) => {
+  const yml = feedsGenerator.generateYMLFeed();
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.setHeader('Content-Disposition', 'inline; filename="products.yml"');
+  res.send(yml);
+});
+
+// CSV фид
+app.get('/api/feeds/csv', (req, res) => {
+  const csv = feedsGenerator.generateCSVFeed();
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="products.csv"');
+  res.send(csv);
+});
+
+// JSON фид
+app.get('/api/feeds/json', (req, res) => {
+  const json = feedsGenerator.generateJsonFeed();
+  res.json(JSON.parse(json));
+});
+
+// Добавить товар
+app.post('/api/products/add', (req, res) => {
+  const product = req.body;
+  feedsGenerator.addProduct(product);
+
+  res.json({
+    success: true,
+    message: `✅ Товар "${product.name}" добавлен`,
+    product: feedsGenerator.products[feedsGenerator.products.length - 1]
+  });
+});
+
+// Обновить цену товара
+app.put('/api/products/:id/price', (req, res) => {
+  const { id } = req.params;
+  const { newPrice } = req.body;
+
+  const success = feedsGenerator.updatePrice(id, newPrice);
+
+  if (success) {
+    res.json({
+      success: true,
+      message: `✅ Цена товара обновлена на ${newPrice}₽`
+    });
+  } else {
+    res.status(404).json({
+      success: false,
+      message: '❌ Товар не найден'
+    });
+  }
+});
+
+// Обновить количество товара
+app.put('/api/products/:id/quantity', (req, res) => {
+  const { id } = req.params;
+  const { quantity } = req.body;
+
+  const success = feedsGenerator.updateQuantity(id, quantity);
+
+  if (success) {
+    res.json({
+      success: true,
+      message: `✅ Количество товара обновлено на ${quantity}`
+    });
+  } else {
+    res.status(404).json({
+      success: false,
+      message: '❌ Товар не найден'
+    });
+  }
+});
+
+// Получить список всех товаров
+app.get('/api/products', (req, res) => {
+  res.json({
+    products: feedsGenerator.getProducts(),
+    stats: feedsGenerator.getStats()
+  });
+});
+
+// Получить статистику
+app.get('/api/feeds/stats', (req, res) => {
+  res.json(feedsGenerator.getStats());
 });
 
 app.get('/health', (req, res) => {
