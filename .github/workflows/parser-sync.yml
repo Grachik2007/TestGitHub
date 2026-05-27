@@ -41,12 +41,11 @@ jobs:
           file feeds/products.csv
 
       - name: 🚀 Deploy to GitHub Pages
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --local user.email "github-actions@github.com"
           git config --local user.name "GitHub Actions"
-
-          # Configure git to use GitHub token for authentication
-          git config --local http."https://github.com/".extraheader "Authorization: token ${{ secrets.GITHUB_TOKEN }}"
 
           # Save feeds before any git operations
           mkdir -p /tmp/feeds
@@ -55,17 +54,17 @@ jobs:
           # Reset to clean state
           git reset --hard HEAD
 
-          # Fetch and checkout gh-pages
-          git fetch origin gh-pages
+          # Fetch and checkout gh-pages using token in URL
+          git fetch https://x-access-token:${GH_TOKEN}@github.com/Grachik2007/TestGitHub.git gh-pages
           git checkout gh-pages
 
           # Copy feeds to repo root
           cp /tmp/feeds/* .
 
-          # Commit and push
+          # Commit and push with token in URL
           git add products.yml products.csv summary.json || true
           git commit -m "chore: update feeds from parser sync" || true
-          git push -u origin gh-pages -o ci.skip
+          git push https://x-access-token:${GH_TOKEN}@github.com/Grachik2007/TestGitHub.git gh-pages -o ci.skip
 
       - name: ✅ Sync completed
         run: |
