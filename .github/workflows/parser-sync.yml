@@ -45,9 +45,8 @@ jobs:
           git config --local user.email "github-actions@github.com"
           git config --local user.name "GitHub Actions"
 
-          # Configure git to use token for authentication
-          git config --local credential.helper store
-          echo "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com" > ~/.git-credentials
+          # Stash any local changes to prevent checkout conflicts
+          git stash
 
           # Create and checkout gh-pages branch
           git fetch origin gh-pages || true
@@ -59,7 +58,9 @@ jobs:
           # Commit and push
           git add products.yml products.csv summary.json || true
           git commit -m "chore: update feeds from parser sync" || true
-          git push -u origin gh-pages
+          git push -u origin gh-pages -o ci.skip
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ✅ Sync completed
         run: |
