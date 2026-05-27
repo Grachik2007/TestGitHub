@@ -1,179 +1,138 @@
-# 🚀 Гайд развёртывания AI Backend для Wonderfulbed
+# 🚀 Complete Deployment Guide - Wonderfulbed AI SaaS Platform
 
-## **Выбранная платформа: Railway.app**
-- ✅ Полностью бесплатная ($5/месяц)
-- ✅ Node.js 20 поддержка
-- ✅ Автоматический деплой из GitHub
-- ✅ Никогда не спит (в отличие от Render.com)
+This guide walks you through the final setup steps to get your automated product feed system live.
 
----
+## ✅ What's Already Done
 
-## **БЫСТРЫЙ СТАРТ (5 минут)**
+- ✅ Parser implementation with ctradei authentication
+- ✅ Smart pricing engine (30% margin calculation)
+- ✅ Feed generation (YML, CSV, JSON formats)
+- ✅ GitHub Actions workflow configured
+- ✅ Test data infrastructure in place
+- ✅ All core logic tested and verified
 
-### **1️⃣ Перейти на Railway.app**
-https://railway.app/
+## 📋 Setup Checklist
 
-### **2️⃣ Создать новый проект**
-- Нажать "Start a New Project"
-- Выбрать "Deploy from GitHub repo"
-- Авторизоваться через GitHub
+### Step 1: Set Up GitHub Secrets (2 minutes)
 
-### **3️⃣ Выбрать репозиторий**
-- Выбрать: `Grachik2007/TestGitHub`
-- Ветка: `claude/ai-saas-agents-platform-bIaAc`
+Your GitHub Actions workflow needs credentials to access ctradei.
 
-### **4️⃣ Добавить переменные окружения**
+1. Go to: **https://github.com/Grachik2007/TestGitHub/settings/secrets/actions**
 
-В Railway нажать "Variables" и добавить:
+2. Click **"New repository secret"** and create these two secrets:
 
-```
-GIGACHAT_CLIENT_ID = [ваш client id от GigaChat]
-GIGACHAT_CLIENT_SECRET = [ваш secret от GigaChat]
-NODE_ENV = production
-PORT = 5000
-```
+   **Secret #1: CTRADEI_LOGIN**
+   - Name: `CTRADEI_LOGIN`
+   - Value: `bgrachik@yandex.ru`
+   - Click "Add secret"
 
-### **5️⃣ Указать директорию**
+   **Secret #2: CTRADEI_PASSWORD**
+   - Name: `CTRADEI_PASSWORD`
+   - Value: `89682753114Grach`
+   - Click "Add secret"
 
-В настройках Service:
-```
-Root Directory: apps/gigachat-api
-```
-
-Или через `Procfile` в корне `apps/gigachat-api/`:
-```
-web: node server.js
-```
-
-### **6️⃣ Деплой**
-
-Railway автоматически:
-- ✅ Установит npm зависимости
-- ✅ Запустит `npm start`
-- ✅ Даст вам URL типа: `https://wonderfulbed-api-production.up.railway.app`
+3. ✅ Done! GitHub Actions can now authenticate with ctradei
 
 ---
 
-## **📌 ВАША СТАТИЧНАЯ YML ССЫЛКА:**
+### Step 2: Enable GitHub Pages (2 minutes)
 
-После деплоя ваша ссылка будет:
+Your feeds need to be published to a static URL that insales can access.
 
-```
-https://[ваш-домен-railway].up.railway.app/api/feeds/yml
-```
+1. Go to: **https://github.com/Grachik2007/TestGitHub/settings/pages**
 
-**Пример:**
-```
-https://wonderfulbed-api-production.up.railway.app/api/feeds/yml
-```
+2. Under "Build and deployment":
+   - **Source**: Select "Deploy from a branch"
+   - **Branch**: Select `gh-pages`
+   - **Folder**: Select `/ (root)`
+   - Click "Save"
 
----
+3. Wait 1-2 minutes for GitHub to enable Pages
 
-## **🔌 ПОДКЛЮЧЕНИЕ К INSALES**
-
-После развёртывания у вас будет несколько способов:
-
-### **Вариант 1: Прямая интеграция через Albato**
-- Используйте Albato для синхронизации с insales
-- Источник: Ваша YML ссылка
-- Цель: insales
-
-### **Вариант 2: Импорт в insales вручную**
-В insales → Товары → Импорт:
-- Загрузить YML с вашей ссылки: `/api/feeds/yml`
-- Указать период обновления (каждый час)
-
-### **Вариант 3: Webhook интеграция (продвинутая)**
-- insales отправляет заказы на ваш сервер
-- AI обновляет цены и товары в реальном времени
+4. ✅ Done! You should see a green message "Your site is live at https://grachik2007.github.io/TestGitHub/"
 
 ---
 
-## **🧪 ПРОВЕРКА РАБОТОСПОСОБНОСТИ**
+### Step 3: Run First Sync (5 minutes)
 
-После развёртывания проверьте эндпоинты:
+Test that everything works by manually triggering the workflow.
 
-```bash
-# Проверка здоровья
-curl https://[ваш-домен]/health
-→ {"status":"ok"}
+1. Go to: **https://github.com/Grachik2007/TestGitHub/actions**
 
-# Получить YML фид
-curl https://[ваш-домен]/api/feeds/yml
-→ XML с товарами
+2. Find the workflow: **"🔄 Daily Parser Sync - ctradei to GitHub Pages"**
 
-# Расчёт цены
-curl -X POST https://[ваш-домен]/api/pricing/calculate \
-  -H "Content-Type: application/json" \
-  -d '{"cost":1000,"targetMargin":0.30}'
-→ {"recommendedPrice":2500, ...}
-```
+3. Click **"Run workflow"** dropdown button
 
----
+4. Click **"Run workflow"** (keep default settings)
 
-## **💾 ОБНОВЛЕНИЕ ТОВАРОВ**
+5. Watch the workflow run (should take 1-2 minutes)
 
-### **Добавить товар:**
-```bash
-curl -X POST https://[ваш-домен]/api/products/add \
-  -H "Content-Type: application/json" \
-  -d '{
-    "id": 1,
-    "name": "Кровать King",
-    "description": "Красивая кровать",
-    "cost": 1000,
-    "quantity": 50
-  }'
-```
+6. After it completes:
+   - All steps should be ✅ green
+   - Check the artifacts in the workflow logs
 
-### **Изменить цену:**
-```bash
-curl -X PUT https://[ваш-домен]/api/products/1/price \
-  -H "Content-Type: application/json" \
-  -d '{"newPrice": 2800}'
-```
-
-### **Обновить остатки:**
-```bash
-curl -X PUT https://[ваш-домен]/api/products/1/quantity \
-  -H "Content-Type: application/json" \
-  -d '{"quantity": 35}'
-```
+7. ✅ Done! Your feeds have been generated and published
 
 ---
 
-## **⚙️ АЛЬТЕРНАТИВНЫЕ ПЛАТФОРМЫ**
+### Step 4: Verify Feed Files (2 minutes)
 
-Если Railway не подходит:
+Make sure the feeds are accessible.
 
-| Платформа | Бесплатный тариф | Минус |
-|-----------|-----------------|-------|
-| **Railway** | $5/месяц | ✅ РЕКОМЕНДУЕМ |
-| Fly.io | Да | Спит после бездействия |
-| Render.com | 0.1 compute unit | Спит после 15 мин бездействия |
-| Heroku | Закрыл бесплатный | ❌ |
-| Replit | Да | Медленнее |
+Open these URLs in your browser (they should show XML/CSV content):
 
----
+1. **YML Feed**: https://grachik2007.github.io/TestGitHub/products.yml
+   - Should show XML content with your products
+   - Content-Type: `text/xml`
 
-## **🎯 ПОСЛЕ РАЗВЁРТЫВАНИЯ**
+2. **CSV Feed**: https://grachik2007.github.io/TestGitHub/products.csv
+   - Should show CSV content
+   - Content-Type: `text/csv`
 
-1. ✅ Скопируйте свою URL
-2. ✅ Добавьте товары через API
-3. ✅ Подключите YML фид в insales или Albato
-4. ✅ Готово! Агенты будут управлять ценами автоматически
+3. **Summary**: https://grachik2007.github.io/TestGitHub/summary.json
+   - Should show JSON with statistics
 
 ---
 
-## **📞 ПОДДЕРЖКА**
+### Step 5: Connect to insales (3 minutes)
 
-Если что-то не работает:
-- Проверьте переменные окружения (GIGACHAT_CLIENT_ID, SECRET)
-- Посмотрите логи в Railway Dashboard
-- Убедитесь что ветка `claude/ai-saas-agents-platform-bIaAc` свежая
+Now insales can automatically pull your products.
+
+1. Log in to **insales admin panel**
+
+2. Navigate to: **Товары → Импорт**
+
+3. Create import:
+   - **URL**: https://grachik2007.github.io/TestGitHub/products.yml
+   - **Периодичность**: каждый час
+   - Click **"Сохранить"**
+
+4. ✅ Done! insales will now sync products every hour
 
 ---
 
-**Готовы к развёртыванию? 🚀**
+## 📊 How It Works
 
-Дайте знать когда развернули, и я помогу с подключением к insales!
+Every day at **00:30 MSK**:
+1. GitHub Actions downloads latest products from ctradei
+2. Merges CSV (prices) + YML (descriptions)
+3. Calculates smart prices (30% margin)
+4. Publishes to GitHub Pages
+5. insales automatically pulls the new data
+
+---
+
+## 🔗 Important Links
+
+- **GitHub Secrets**: https://github.com/Grachik2007/TestGitHub/settings/secrets/actions
+- **GitHub Pages**: https://github.com/Grachik2007/TestGitHub/settings/pages
+- **Workflow Status**: https://github.com/Grachik2007/TestGitHub/actions
+- **Live YML Feed**: https://grachik2007.github.io/TestGitHub/products.yml
+
+---
+
+**🎉 Your automated product sync system is ready!**
+
+Total setup time: **~15 minutes**
+Monthly cost: **$0** (completely free)
+Maintenance: **0 hours** (fully automatic)
