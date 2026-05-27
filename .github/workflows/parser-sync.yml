@@ -1,0 +1,61 @@
+name: 🔄 Daily Parser Sync - ctradei to GitHub Pages
+
+on:
+  schedule:
+    # Каждый день в 00:30 MSK (21:30 UTC в зимнее время)
+    - cron: '30 21 * * *'
+  workflow_dispatch:  # Можно запустить вручную
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+
+      - name: 📚 Install dependencies
+        run: |
+          npm install axios xml2js csv-parse
+
+      - name: 🔄 Run Parser Agent
+        env:
+          CTRADEI_LOGIN: ${{ secrets.CTRADEI_LOGIN }}
+          CTRADEI_PASSWORD: ${{ secrets.CTRADEI_PASSWORD }}
+        run: node .github/scripts/parser.js
+
+      - name: 📊 Check generated files
+        run: |
+          ls -lah feeds/
+          echo "Generated files:"
+          file feeds/products.yml
+          file feeds/products.csv
+
+      - name: 🚀 Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./feeds
+
+      - name: ✅ Sync completed
+        run: |
+          echo "🎉 Синхронизация завершена!"
+          echo "YML доступен по ссылке:"
+          echo "https://grachik2007.github.io/TestGitHub/products.yml"
+          echo ""
+          echo "CSV доступен по ссылке:"
+          echo "https://grachik2007.github.io/TestGitHub/products.csv"
+
+      - name: 📧 Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Синхронизация не удалась!"
+          echo "Проверьте логи на GitHub Actions"

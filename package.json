@@ -1,0 +1,7 @@
+{
+  "devDependencies": {
+    "axios": "^1.16.1",
+    "csv-parse": "^6.2.1",
+    "xml2js": "^0.6.2"
+  }
+}
