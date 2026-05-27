@@ -5,6 +5,8 @@ require('dotenv').config();
 
 const PricingEngine = require('./pricing-engine');
 const FeedsGenerator = require('./feeds-generator');
+const ParserAgent = require('./parser-agent');
+const schedule = require('node-schedule');
 
 const app = express();
 app.use(cors());
@@ -13,6 +15,13 @@ app.use(express.json());
 // Инициализация
 const pricingEngine = new PricingEngine();
 const feedsGenerator = new FeedsGenerator();
+const parserAgent = new ParserAgent(
+  process.env.CTRADEI_LOGIN || 'bgrachik@yandex.ru',
+  process.env.CTRADEI_PASSWORD || ''
+);
+
+let lastSyncTime = null;
+let lastSyncProducts = 0;
 
 const GIGACHAT_CLIENT_ID = process.env.GIGACHAT_CLIENT_ID;
 const GIGACHAT_CLIENT_SECRET = process.env.GIGACHAT_CLIENT_SECRET;
@@ -313,12 +322,126 @@ app.get('/api/feeds/stats', (req, res) => {
   res.json(feedsGenerator.getStats());
 });
 
+// ============= PARSER ENDPOINTS =============
+
+// Запустить синхронизацию с ctradei (вручную)
+app.post('/api/parser/sync', async (req, res) => {
+  try {
+    console.log('🚀 Запускаю синхронизацию...');
+    const products = await parserAgent.sync();
+
+    // Очищаем старые товары и добавляем новые
+    feedsGenerator.products = [];
+    products.forEach(product => {
+      const price = pricingEngine.calculatePrice(product.cost || 1000);
+      feedsGenerator.addProduct({
+        ...product,
+        salePrice: price
+      });
+    });
+
+    lastSyncTime = new Date();
+    lastSyncProducts = products.length;
+
+    res.json({
+      success: true,
+      message: `✅ Синхронизация успешна! Загружено товаров: ${products.length}`,
+      productsCount: products.length,
+      stats: feedsGenerator.getStats(),
+      lastSync: lastSyncTime
+    });
+  } catch (error) {
+    console.error('Ошибка синхронизации:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// Получить статус синхронизации
+app.get('/api/parser/status', (req, res) => {
+  res.json({
+    lastSync: lastSyncTime,
+    productsLoaded: lastSyncProducts,
+    nextScheduledSync: '00:30 MSK (каждый день)'
+  });
+});
+
+// Получить статистику парсера
+app.get('/api/parser/stats', (req, res) => {
+  const stats = feedsGenerator.getStats();
+  res.json({
+    ...stats,
+    lastSync: lastSyncTime,
+    syncsCompleted: lastSyncTime ? 1 : 0
+  });
+});
+
+// ============= SCHEDULED SYNC =============
+
+// Расписание синхронизации: каждый день в 00:30 MSK
+schedule.scheduleJob('30 0 * * *', async () => {
+  console.log('\n⏰ АВТОМАТИЧЕСКАЯ СИНХРОНИЗАЦИЯ В 00:30 MSK\n');
+  try {
+    const products = await parserAgent.sync();
+
+    // Обновляем товары
+    feedsGenerator.products = [];
+    products.forEach(product => {
+      const price = pricingEngine.calculatePrice(product.cost || 1000);
+      feedsGenerator.addProduct({
+        ...product,
+        salePrice: price
+      });
+    });
+
+    lastSyncTime = new Date();
+    lastSyncProducts = products.length;
+
+    console.log(`✅ АВТОСИНХРОНИЗАЦИЯ ЗАВЕРШЕНА: ${products.length} товаров\n`);
+  } catch (error) {
+    console.error('❌ ОШИБКА АВТОСИНХРОНИЗАЦИИ:', error.message);
+  }
+});
+
+// При запуске - один раз синхронизируем (опционально)
+async function initializeParser() {
+  try {
+    console.log('🔄 Инициализация Parker Agent...');
+    const products = await parserAgent.sync();
+
+    feedsGenerator.products = [];
+    products.forEach(product => {
+      const price = pricingEngine.calculatePrice(product.cost || 1000);
+      feedsGenerator.addProduct({
+        ...product,
+        salePrice: price
+      });
+    });
+
+    lastSyncTime = new Date();
+    lastSyncProducts = products.length;
+    console.log(`✅ Parker готов! Товаров загружено: ${products.length}\n`);
+  } catch (error) {
+    console.error('⚠️ Не удалось инициализировать Parker:', error.message);
+    console.log('   (Товары будут загружены при первой синхронизации)\n');
+  }
+}
+
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`✅ AI Assistant API running on port ${PORT}`);
-  console.log(`🔌 Endpoint: POST /api/chat`);
+  console.log(`🔌 Endpoints:`);
+  console.log(`   POST /api/chat - чаты с AI агентами`);
+  console.log(`   POST /api/parser/sync - синхронизация с ctradei`);
+  console.log(`   GET /api/feeds/yml - YML фид для insales`);
+  console.log(`\n🚀 Инициализирую систему...\n`);
+
+  // Инициализируем парсер при запуске
+  await initializeParser();
 });
