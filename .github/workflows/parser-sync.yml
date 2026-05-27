@@ -40,10 +40,21 @@ jobs:
           file feeds/products.csv
 
       - name: 🚀 Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./feeds
+        run: |
+          git config --local user.email "github-actions@github.com"
+          git config --local user.name "GitHub Actions"
+
+          # Create and checkout gh-pages branch
+          git fetch origin gh-pages || true
+          git checkout -B gh-pages origin/gh-pages || git checkout --orphan gh-pages
+
+          # Copy feeds to repo root
+          cp -r feeds/* .
+
+          # Commit and push
+          git add products.yml products.csv summary.json || true
+          git commit -m "chore: update feeds from parser sync" || true
+          git push -u origin gh-pages
 
       - name: ✅ Sync completed
         run: |
