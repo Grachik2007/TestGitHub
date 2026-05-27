@@ -27,6 +27,9 @@ jobs:
           npm install axios xml2js csv-parse
 
       - name: 🔄 Run Parser Agent
+        env:
+          CTRADEI_LOGIN: ${{ secrets.CTRADEI_LOGIN }}
+          CTRADEI_PASSWORD: ${{ secrets.CTRADEI_PASSWORD }}
         run: node .github/scripts/parser.js
 
       - name: 📊 Check generated files

@@ -1,35 +1,17 @@
 #!/usr/bin/env node
 
 /**
- * Parser Agent - автоматическое скачивание и merge товаров с ctradei
- * Запускается GitHub Actions каждый день в 00:30 MSK
- * Публикует YML/CSV в GitHub Pages для insales
+ * Parser Agent Test Mode - локальные тестовые данные
+ * Используется для разработки и тестирования логики
  */
 
-const axios = require('axios');
-const xml2js = require('xml2js');
-const csv = require('csv-parse/sync');
 const fs = require('fs');
 const path = require('path');
+const xml2js = require('xml2js');
+const csv = require('csv-parse/sync');
 
-// Ctradei credentials from environment
-const CTRADEI_EMAIL = process.env.CTRADEI_LOGIN || 'bgrachik@yandex.ru';
-const CTRADEI_PASSWORD = process.env.CTRADEI_PASSWORD || '';
-
-const CSV_URL = 'https://ctradei.com/f/ostatki_2020.csv';
-const YML_URL = 'https://ctradei.com/x/shop2_1410641-yml.xml';
 const OUTPUT_DIR = 'feeds';
 
-// Create axios instance with persistent session
-const client = axios.create({
-  timeout: 30000,
-  withCredentials: true,
-  headers: {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-  }
-});
-
-// Константы ценообразования
 const PRICING = {
   WHOLESALE_COST: 1000,
   PACKAGING_DELIVERY_IN: 200,
@@ -40,53 +22,13 @@ const PRICING = {
   TARGET_MARGIN: 0.30
 };
 
-// Создать директорию для выхода
 if (!fs.existsSync(OUTPUT_DIR)) {
   fs.mkdirSync(OUTPUT_DIR, { recursive: true });
 }
 
-console.log('\n🚀 === НАЧИНАЮ СИНХРОНИЗАЦИЮ С CTRADEI ===\n');
+console.log('\n🚀 === ТЕСТИРОВАНИЕ СИНХРОНИЗАЦИИ (LOCAL DATA) ===\n');
 console.log(`⏰ Время: ${new Date().toISOString()}`);
 console.log(`📁 Выходная директория: ${OUTPUT_DIR}\n`);
-
-// ============= ФУНКЦИИ =============
-
-async function loginToCtrадei() {
-  try {
-    console.log(`🔐 Авторизуюсь на ctradei как ${CTRADEI_EMAIL}...`);
-
-    // Attempt login
-    const loginResponse = await client.post('https://ctradei.com/login',
-      new URLSearchParams({
-        email: CTRADEI_EMAIL,
-        password: CTRADEI_PASSWORD
-      }),
-      {
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        }
-      }
-    );
-
-    console.log(`✅ Авторизация успешна`);
-    return true;
-  } catch (error) {
-    console.warn(`⚠️  Авторизация не удалась, попробую скачать файлы без неё: ${error.message}`);
-    return false;
-  }
-}
-
-async function downloadFile(url) {
-  try {
-    console.log(`📥 Скачиваю: ${url}`);
-    const response = await client.get(url);
-    console.log(`✅ Успешно скачан (${response.data.length} bytes)`);
-    return response.data;
-  } catch (error) {
-    console.error(`❌ Ошибка скачивания: ${error.message}`);
-    throw error;
-  }
-}
 
 async function parseCSV(content) {
   console.log('\n📊 Парсю CSV (остатки и цены)...');
@@ -166,12 +108,10 @@ function mergeProducts(csvProducts, ymlProducts) {
 
   const merged = {};
 
-  // Добавляем товары из YML
   Object.values(ymlProducts).forEach(product => {
     merged[product.id] = { ...product };
   });
 
-  // Добавляем/обновляем данные из CSV
   Object.entries(csvProducts).forEach(([id, csvData]) => {
     if (merged[id]) {
       merged[id].cost = csvData.cost;
@@ -262,13 +202,13 @@ function generateYML(products, shopName = 'Wonderfulbed') {
 function generateCSV(products) {
   console.log('\n📊 Генерирую CSV...');
 
-  let csv = 'ID,Название,Описание,Цена,Остаток,Артикул,Дата обновления\n';
+  let csvContent = 'ID,Название,Описание,Цена,Остаток,Артикул,Дата обновления\n';
 
   products.forEach(product => {
-    csv += `"${product.id}","${escapeCsv(product.name)}","${escapeCsv(product.description)}",${product.salePrice},${product.quantity || 0},"${product.barcode || ''}","${product.updatedAt}"\n`;
+    csvContent += `"${product.id}","${escapeCsv(product.name)}","${escapeCsv(product.description)}",${product.salePrice},${product.quantity || 0},"${product.barcode || ''}","${product.updatedAt}"\n`;
   });
 
-  return csv;
+  return csvContent;
 }
 
 function escapeXml(str) {
@@ -289,36 +229,26 @@ function escapeCsv(str) {
   return str;
 }
 
-// ============= ГЛАВНЫЙ ПРОЦЕСС =============
-
 async function main() {
   try {
-    // Попытка авторизации
-    await loginToCtrадei();
+    const csvPath = path.join('.github/test-data', 'sample.csv');
+    const ymlPath = path.join('.github/test-data', 'sample.xml');
 
-    // Скачиваем оба файла
-    const csvContent = await downloadFile(CSV_URL);
-    const ymlContent = await downloadFile(YML_URL);
+    const csvContent = fs.readFileSync(csvPath, 'utf-8');
+    const ymlContent = fs.readFileSync(ymlPath, 'utf-8');
 
-    // Парсим
     const csvProducts = await parseCSV(csvContent);
     const ymlProducts = await parseYML(ymlContent);
 
-    // Merge
     let products = mergeProducts(csvProducts, ymlProducts);
-
-    // Smart Pricing
     products = applySmartPricing(products);
 
-    // Генерируем выходные файлы
     const ymlOutput = generateYML(products);
     const csvOutput = generateCSV(products);
 
-    // Сохраняем файлы
     fs.writeFileSync(path.join(OUTPUT_DIR, 'products.yml'), ymlOutput, 'utf-8');
     fs.writeFileSync(path.join(OUTPUT_DIR, 'products.csv'), csvOutput, 'utf-8');
 
-    // Создаём summary
     const summary = {
       timestamp: new Date().toISOString(),
       productsCount: products.length,
@@ -354,7 +284,7 @@ async function main() {
     console.error('='.repeat(60));
     console.error(`\nОшибка: ${error.message}`);
     console.error(`\n⏰ Время ошибки: ${new Date().toISOString()}`);
-    console.error('\nПроверьте логи GitHub Actions для деталей.\n');
+    console.error('\n');
     process.exit(1);
   }
 }
