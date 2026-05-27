@@ -45,15 +45,19 @@ jobs:
           git config --local user.email "github-actions@github.com"
           git config --local user.name "GitHub Actions"
 
-          # Stash any local changes to prevent checkout conflicts
-          git stash
+          # Save feeds before any git operations
+          mkdir -p /tmp/feeds
+          cp -r feeds/* /tmp/feeds/
 
-          # Create and checkout gh-pages branch
-          git fetch origin gh-pages || true
-          git checkout -B gh-pages origin/gh-pages || git checkout --orphan gh-pages
+          # Reset to clean state
+          git reset --hard HEAD
+
+          # Fetch and checkout gh-pages
+          git fetch origin gh-pages
+          git checkout gh-pages
 
           # Copy feeds to repo root
-          cp -r feeds/* .
+          cp /tmp/feeds/* .
 
           # Commit and push
           git add products.yml products.csv summary.json || true
