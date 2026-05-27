@@ -45,6 +45,9 @@ jobs:
           git config --local user.email "github-actions@github.com"
           git config --local user.name "GitHub Actions"
 
+          # Configure git to use GitHub token for authentication
+          git config --local http."https://github.com/".extraheader "Authorization: token ${{ secrets.GITHUB_TOKEN }}"
+
           # Save feeds before any git operations
           mkdir -p /tmp/feeds
           cp -r feeds/* /tmp/feeds/
@@ -63,8 +66,6 @@ jobs:
           git add products.yml products.csv summary.json || true
           git commit -m "chore: update feeds from parser sync" || true
           git push -u origin gh-pages -o ci.skip
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ✅ Sync completed
         run: |
