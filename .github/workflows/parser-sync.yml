@@ -16,6 +16,7 @@ jobs:
         with:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main
 
       - name: 📦 Setup Node.js
         uses: actions/setup-node@v3
@@ -43,6 +44,10 @@ jobs:
         run: |
           git config --local user.email "github-actions@github.com"
           git config --local user.name "GitHub Actions"
+
+          # Configure git to use token for authentication
+          git config --local credential.helper store
+          echo "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com" > ~/.git-credentials
 
           # Create and checkout gh-pages branch
           git fetch origin gh-pages || true
