@@ -28,9 +28,6 @@ jobs:
 
       - name: 🔄 Run Parser Agent
         run: node .github/scripts/parser.js
-        env:
-          CTRADEI_LOGIN: ${{ secrets.CTRADEI_LOGIN }}
-          CTRADEI_PASSWORD: ${{ secrets.CTRADEI_PASSWORD }}
 
       - name: 📊 Check generated files
         run: |

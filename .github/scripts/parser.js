@@ -12,9 +12,7 @@ const csv = require('csv-parse/sync');
 const fs = require('fs');
 const path = require('path');
 
-// Переменные окружения
-const CTRADEI_LOGIN = process.env.CTRADEI_LOGIN || 'bgrachik@yandex.ru';
-const CTRADEI_PASSWORD = process.env.CTRADEI_PASSWORD || '';
+// Прямые ссылки на публичные файлы (без авторизации!)
 const CSV_URL = 'https://ctradei.com/f/ostatki_2020.csv';
 const YML_URL = 'https://ctradei.com/x/shop2_1410641-yml.xml';
 const OUTPUT_DIR = 'feeds';
