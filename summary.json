@@ -1,0 +1,13 @@
+{
+  "timestamp": "2026-05-28T08:56:10.000Z",
+  "productsCount": 5,
+  "stats": {
+    "totalInventoryValue": 0,
+    "totalQuantity": 0,
+    "avgPrice": 2319
+  },
+  "links": {
+    "yml": "https://grachik2007.github.io/TestGitHub/products.yml",
+    "csv": "https://grachik2007.github.io/TestGitHub/products.csv"
+  }
+}
