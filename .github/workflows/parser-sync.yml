@@ -6,6 +6,11 @@ on:
     - cron: '30 21 * * *'
   workflow_dispatch:  # Можно запустить вручную
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 jobs:
   sync:
     runs-on: ubuntu-latest
