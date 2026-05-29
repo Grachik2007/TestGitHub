@@ -14,12 +14,12 @@ const OUTPUT_DIR = 'feeds';
 
 const PRICING = {
   WHOLESALE_COST: 1000,
-  PACKAGING_DELIVERY_IN: 200,
-  DELIVERY_OUT: 400,
-  COMMISSION_RATE: 0.12,
-  INSURANCE_RATE: 0.05,
-  TAX_RATE: 0.20,
-  TARGET_MARGIN: 0.30
+  PACKAGING: 250,              // упаковка
+  ASSEMBLY: 100,               // сборка
+  COMMISSION_RATE: 0.055,      // комиссия эквайорина (5.5%)
+  MARKETING_RATE: 0.05,        // маркетинг (5%)
+  TAX_RATE: 0.20,              // налог (20%)
+  TARGET_MARGIN: 0.30          // целевая маржа (30%)
 };
 
 if (!fs.existsSync(OUTPUT_DIR)) {
@@ -137,8 +137,8 @@ function mergeProducts(csvProducts, ymlProducts) {
 }
 
 function calculatePrice(cost = PRICING.WHOLESALE_COST) {
-  const fixedCosts = cost + PRICING.PACKAGING_DELIVERY_IN + PRICING.DELIVERY_OUT;
-  const variableRatio = PRICING.COMMISSION_RATE + PRICING.INSURANCE_RATE +
+  const fixedCosts = cost + PRICING.PACKAGING + PRICING.ASSEMBLY;
+  const variableRatio = PRICING.COMMISSION_RATE + PRICING.MARKETING_RATE +
                         (PRICING.TAX_RATE * (1 - PRICING.TARGET_MARGIN));
   return Math.round(fixedCosts / (1 - variableRatio));
 }
