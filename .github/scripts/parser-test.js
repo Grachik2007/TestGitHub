@@ -202,10 +202,10 @@ function generateYML(products, shopName = 'Wonderfulbed') {
 function generateCSV(products) {
   console.log('\n📊 Генерирую CSV...');
 
-  let csvContent = 'ID,Название,Описание,Цена,Остаток,Артикул,Дата обновления\n';
+  let csvContent = 'ID,Название,Описание,Цена,Остаток,Артикул,Изображение,URL,Категория,Дата обновления\n';
 
   products.forEach(product => {
-    csvContent += `"${product.id}","${escapeCsv(product.name)}","${escapeCsv(product.description)}",${product.salePrice},${product.quantity || 0},"${product.barcode || ''}","${product.updatedAt}"\n`;
+    csvContent += `"${product.id}","${escapeCsv(product.name)}","${escapeCsv(product.description)}",${product.salePrice},${product.quantity || 0},"${product.barcode || ''}","${product.imageUrl || ''}","${product.url || ''}","${product.category || '1'}","${product.updatedAt}"\n`;
   });
 
   return csvContent;
