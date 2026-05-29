@@ -14,6 +14,8 @@ from telegram.ext import (
     ContextTypes,
 )
 
+from gigachat_client import GigaChatClient
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
@@ -23,6 +25,9 @@ logger = logging.getLogger(__name__)
 TOKEN: Final = os.getenv("TELEGRAM_BOT_TOKEN", "")
 API_URL: Final = os.getenv("API_URL", "http://localhost:8000")
 PRICING_API_URL: Final = os.getenv("PRICING_API_URL", "http://localhost:3001")
+
+# Initialize GigaChat client
+gigachat = GigaChatClient()
 
 # ============= PRICING API HELPERS =============
 
@@ -94,54 +99,145 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 async def seo_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /seo command."""
     await update.message.reply_text(
-        "🔍 SEO Analysis Agent\n\n"
-        "What would you like to analyze?\n"
-        "- Keyword research\n"
-        "- Competitor analysis\n"
-        "- Content optimization\n"
-        "- Metadata suggestions\n\n"
-        "Send me your query!"
+        "🔍 **SEO Analysis Agent**\n\n"
+        "Используй: `/seo https://example.com ключевое слово`\n\n"
+        "Примеры:\n"
+        "`/seo https://wonderfulbed.ru`\n"
+        "`/seo https://wonderfulbed.ru кровати матрасы`\n\n"
+        "Я проанализирую сайт и дам 5 конкретных рекомендаций по SEO",
+        parse_mode="Markdown"
     )
+
+async def seo_analysis(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /seo with URL."""
+    if not context.args or len(context.args) < 1:
+        await seo_command(update, context)
+        return
+
+    url = context.args[0]
+    query = " ".join(context.args[1:]) if len(context.args) > 1 else None
+
+    await update.message.chat.send_action("typing")
+    await update.message.reply_text("⏳ Анализирую сайт... Это займет момент...")
+
+    analysis = await gigachat.analyze_seo(url, query)
+    if analysis:
+        await update.message.reply_text(f"🔍 **SEO Анализ**\n\n{analysis}", parse_mode="Markdown")
+    else:
+        await update.message.reply_text(
+            "❌ Не смог проанализировать. Проверь:\n"
+            "- Интернет соединение\n"
+            "- GigaChat API credentials\n"
+            "- Правильность URL"
+        )
 
 
 async def suppliers_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /suppliers command."""
     await update.message.reply_text(
-        "🏭 Supplier Research Agent\n\n"
-        "I can help you with:\n"
-        "- Find suppliers\n"
-        "- Compare prices\n"
-        "- Analyze margins\n"
-        "- Sourcing recommendations\n\n"
-        "What are you looking for?"
+        "🏭 **Supplier Research Agent**\n\n"
+        "Используй: `/suppliers название товара`\n\n"
+        "Примеры:\n"
+        "`/suppliers кровати король сайз`\n"
+        "`/suppliers матрасы ортопедические`\n\n"
+        "Найду маркетплейсы, ссылки на поставщиков и дам рекомендации",
+        parse_mode="Markdown"
     )
+
+async def suppliers_research(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /suppliers with product."""
+    if not context.args:
+        await suppliers_command(update, context)
+        return
+
+    product = " ".join(context.args)
+    await update.message.chat.send_action("typing")
+    await update.message.reply_text("⏳ Ищу поставщиков... Это займет момент...")
+
+    research = await gigachat.research_suppliers(product)
+    if research:
+        await update.message.reply_text(f"🏭 **Поставщики товара: {product}**\n\n{research}", parse_mode="Markdown")
+    else:
+        await update.message.reply_text(
+            "❌ Не смог найти информацию. Проверь:\n"
+            "- GigaChat API credentials\n"
+            "- Название товара на русском"
+        )
 
 
 async def products_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /products command."""
     await update.message.reply_text(
-        "📦 Product Research Agent\n\n"
-        "I can analyze:\n"
-        "- Trending products\n"
-        "- Profitable niches\n"
-        "- Market validation\n"
-        "- Competition analysis\n\n"
-        "Tell me what interests you!"
+        "📦 **Product Research Agent**\n\n"
+        "Используй: `/products ниша товара`\n\n"
+        "Примеры:\n"
+        "`/products мебель для спальни`\n"
+        "`/products текстиль постельный`\n\n"
+        "Проанализирую спрос, конкурентов, цены и прибыльность",
+        parse_mode="Markdown"
     )
+
+async def products_research(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /products with niche."""
+    if not context.args:
+        await products_command(update, context)
+        return
+
+    niche = " ".join(context.args)
+    await update.message.chat.send_action("typing")
+    await update.message.reply_text("⏳ Исследую рынок... Это займет момент...")
+
+    research = await gigachat.research_products(niche)
+    if research:
+        await update.message.reply_text(f"📦 **Анализ ниши: {niche}**\n\n{research}", parse_mode="Markdown")
+    else:
+        await update.message.reply_text(
+            "❌ Не смог исследовать рынок. Проверь:\n"
+            "- GigaChat API credentials\n"
+            "- Название ниши на русском"
+        )
 
 
 async def pricing_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /pricing command."""
     await update.message.reply_text(
-        "💰 Pricing Optimization Agent\n\n"
-        "I help with:\n"
-        "- Price optimization\n"
-        "- Profitability analysis\n"
-        "- Competitor pricing\n"
-        "- Strategy recommendations\n\n"
-        "For managing current prices, use: /prices\n"
-        "What product do you need pricing for?"
+        "💰 **Pricing Optimization Agent**\n\n"
+        "Используй: `/pricing название-товара себестоимость`\n\n"
+        "Примеры:\n"
+        "`/pricing кровать-king-200 1500`\n"
+        "`/pricing матрас-ортопедический 800`\n\n"
+        "Рекомендации по цене + стратегия продаж\n\n"
+        "Управление текущими ценами: `/prices`",
+        parse_mode="Markdown"
     )
+
+async def pricing_optimization(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /pricing with product and cost."""
+    if not context.args or len(context.args) < 2:
+        await pricing_command(update, context)
+        return
+
+    product = context.args[0]
+    try:
+        cost = float(context.args[1])
+    except ValueError:
+        await update.message.reply_text("❌ Себестоимость должна быть числом! Пример: `/pricing кровать 1500`")
+        return
+
+    query = " ".join(context.args[2:]) if len(context.args) > 2 else None
+
+    await update.message.chat.send_action("typing")
+    await update.message.reply_text("⏳ Рассчитываю оптимальную цену...")
+
+    optimization = await gigachat.optimize_pricing(product, cost, query)
+    if optimization:
+        await update.message.reply_text(f"💰 **Оптимизация цены: {product}**\n\n{optimization}", parse_mode="Markdown")
+    else:
+        await update.message.reply_text(
+            "❌ Не смог рассчитать цену. Проверь:\n"
+            "- GigaChat API credentials\n"
+            "- Формат: /pricing название-товара себестоимость"
+        )
 
 async def prices_view(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /prices view command - show current pricing config."""
@@ -307,10 +403,10 @@ def main() -> None:
     # Commands
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
-    application.add_handler(CommandHandler("seo", seo_command))
-    application.add_handler(CommandHandler("suppliers", suppliers_command))
-    application.add_handler(CommandHandler("products", products_command))
-    application.add_handler(CommandHandler("pricing", pricing_command))
+    application.add_handler(CommandHandler("seo", seo_analysis))
+    application.add_handler(CommandHandler("suppliers", suppliers_research))
+    application.add_handler(CommandHandler("products", products_research))
+    application.add_handler(CommandHandler("pricing", pricing_optimization))
     application.add_handler(CommandHandler("prices", prices_command))
 
     # Messages
