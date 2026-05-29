@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "version": "2.0",
+    "lastUpdated": "2026-05-29T15:10:00Z",
+    "description": "Smart Pricing Configuration - Конфигурация умного ценообразования"
+  },
+  "costs": {
+    "packaging": 200,
+    "assembly": 400,
+    "defaultWholesaleCost": 1000,
+    "description": "Фиксированные затраты в рублях"
+  },
+  "commissions": {
+    "acquiring": 0.12,
+    "marketplace": 0.00,
+    "description": "Комиссии в процентах (0.12 = 12%)"
+  },
+  "expenses": {
+    "marketing": 0.05,
+    "insurance": 0.05,
+    "tax": 0.20,
+    "description": "Переменные расходы в процентах"
+  },
+  "margin": {
+    "target": 0.30,
+    "description": "Целевая маржа прибыли (0.30 = 30%)"
+  },
+  "notes": {
+    "formula": "price = (cost + packaging + assembly) / (1 - margin - acquiring - marketing - (tax × (1 - margin)))",
+    "example": "Для товара с себестоимостью 1500₽: цена = (1500+250+100) / (1-0.305) = 2450₽"
+  }
+}

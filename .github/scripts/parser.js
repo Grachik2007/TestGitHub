@@ -29,16 +29,33 @@ const client = axios.create({
   }
 });
 
-// Константы ценообразования
-const PRICING = {
-  WHOLESALE_COST: 1000,
-  PACKAGING: 250,              // упаковка
-  ASSEMBLY: 100,               // сборка
-  COMMISSION_RATE: 0.055,      // комиссия эквайорина (5.5%)
-  MARKETING_RATE: 0.05,        // маркетинг (5%)
-  TAX_RATE: 0.20,              // налог (20%)
-  TARGET_MARGIN: 0.30          // целевая маржа (30%)
-};
+// Load pricing configuration from JSON
+let PRICING;
+try {
+  const pricingConfigPath = path.join(__dirname, '../../config/pricing.json');
+  const configData = JSON.parse(fs.readFileSync(pricingConfigPath, 'utf-8'));
+  PRICING = {
+    WHOLESALE_COST: configData.costs.defaultWholesaleCost,
+    PACKAGING: configData.costs.packaging,
+    ASSEMBLY: configData.costs.assembly,
+    COMMISSION_RATE: configData.commissions.acquiring,
+    MARKETING_RATE: configData.expenses.marketing,
+    TAX_RATE: configData.expenses.tax,
+    TARGET_MARGIN: configData.margin.target
+  };
+  console.log('✅ Загружена конфигурация ценообразования из config/pricing.json');
+} catch (error) {
+  console.warn('⚠️  Ошибка загрузки конфига ценообразования, используем значения по умолчанию');
+  PRICING = {
+    WHOLESALE_COST: 1000,
+    PACKAGING: 250,
+    ASSEMBLY: 100,
+    COMMISSION_RATE: 0.055,
+    MARKETING_RATE: 0.05,
+    TAX_RATE: 0.20,
+    TARGET_MARGIN: 0.30
+  };
+}
 
 // Создать директорию для выхода
 if (!fs.existsSync(OUTPUT_DIR)) {
