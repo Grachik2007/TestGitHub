@@ -104,3 +104,8 @@ temp/
 private_keys/
 secrets/
 .aws/
+
+# Environment variables (DO NOT COMMIT!)
+.env
+.env.local
+.env.*.local
