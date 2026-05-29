@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE yml_catalog SYSTEM "shops.dtd">
-<yml_catalog date="2026-05-28T22:51:37.636Z">
+<yml_catalog date="2026-05-29T15:02:04.656Z">
   <shop>
     <name>Wonderfulbed</name>
     <company>Wonderfulbed.ru</company>
@@ -23,7 +23,7 @@
         <barcode></barcode>
         <quantity>0</quantity>
         <oldprice>2319</oldprice>
-        <updatedDate>2026-05-28T22:51:37.636Z</updatedDate>
+        <updatedDate>2026-05-29T15:02:04.656Z</updatedDate>
       </offer>
       <offer id="2">
         <name>Кровать Queen Size 160x200</name>
@@ -36,7 +36,7 @@
         <barcode></barcode>
         <quantity>0</quantity>
         <oldprice>2319</oldprice>
-        <updatedDate>2026-05-28T22:51:37.636Z</updatedDate>
+        <updatedDate>2026-05-29T15:02:04.656Z</updatedDate>
       </offer>
       <offer id="3">
         <name>Матрас ортопедический</name>
@@ -49,7 +49,7 @@
         <barcode></barcode>
         <quantity>0</quantity>
         <oldprice>2319</oldprice>
-        <updatedDate>2026-05-28T22:51:37.636Z</updatedDate>
+        <updatedDate>2026-05-29T15:02:04.656Z</updatedDate>
       </offer>
       <offer id="4">
         <name>Подушка анатомическая</name>
@@ -62,7 +62,7 @@
         <barcode></barcode>
         <quantity>0</quantity>
         <oldprice>2319</oldprice>
-        <updatedDate>2026-05-28T22:51:37.636Z</updatedDate>
+        <updatedDate>2026-05-29T15:02:04.656Z</updatedDate>
       </offer>
       <offer id="5">
         <name>Одеяло холофайбер</name>
@@ -75,7 +75,7 @@
         <barcode></barcode>
         <quantity>0</quantity>
         <oldprice>2319</oldprice>
-        <updatedDate>2026-05-28T22:51:37.636Z</updatedDate>
+        <updatedDate>2026-05-29T15:02:04.656Z</updatedDate>
       </offer>
     </offers>
   </shop>
